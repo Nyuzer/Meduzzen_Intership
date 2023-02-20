@@ -1,0 +1,8 @@
+# ignore all file
+*
+# except .gitignore and other files
+!.gitignore
+!.env.sample
+!__init__.py
+!requirements.txt
+!README.md
