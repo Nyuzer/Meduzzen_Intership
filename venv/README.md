@@ -22,3 +22,21 @@ To run tests you can enter this command in the tests directory
 ```
 python -m pytest
 ```
+
+___
+
+# Docker
+
+To create an image you have to enter this command
+```
+docker build -t myimage .
+```
+
+Run a container based on your image
+```
+docker run -d --name mycontainer -p 80:80 myimage
+```
+Tests are run when you start the container. However, to do the tests when the container is running, enter this command.
+```
+docker exec mycontainer pytest
+```
