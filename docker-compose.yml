@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python3 project/main.py
+    volumes:
+      - .:/app
+    ports:
+      - ${WEB_PORT}:${WEB_PORT}
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URI=${DATABASE_URI}
+
+  redis:
+    image: redis:alpine3.17
+
+  db:
+    image: postgres:alpine3.17
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+volumes:
+  postgres_data:
