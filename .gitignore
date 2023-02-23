@@ -1,2 +1,5 @@
 .idea
 .env
+.pytest_cache
+project/__pycache__
+tests/__pycache__
