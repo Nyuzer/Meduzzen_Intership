@@ -1,19 +1,16 @@
-import os
-
-from dotenv import load_dotenv
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import databases
 import aioredis
 
-# add environment variables
-load_dotenv('.env')
+# issue #1 if add project in import, docker compose will not run but tests will be passed
+# if remove project in import docker compose will run but tests will give me an error that module db doesn't exist
+from db.connections import get_db
 
-DATABASE_URL = os.getenv('DATABASE_URI')
-
-database = databases.Database(DATABASE_URL)
+# add env var from config.py
+# same issue here with 'project import' project.config
+import config
 
 app = FastAPI()
 
@@ -36,19 +33,16 @@ app.add_middleware(
 # socket.gaierror: [Errno 8] nodename nor servname provided, or not known
 @app.on_event("startup")
 async def startup():
+    redis = await aioredis.from_url('redis://redis')
+
+    database = get_db()
     await database.connect()
 
 
-# Error
 @app.on_event("shutdown")
 async def shutdown():
+    database = get_db()
     await database.disconnect()
-
-
-# Error
-@app.on_event("startup")
-async def startup_redis():
-    redis = await aioredis.from_url('redis://redis')
 
 
 @app.get('/')
@@ -61,4 +55,4 @@ def health_check():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=os.getenv('HOST'), port=int(os.getenv('PORT')))
+    uvicorn.run(app, host=config.HOST, port=int(config.PORT))
