@@ -3,3 +3,4 @@
 .pytest_cache
 project/__pycache__
 tests/__pycache__
+project/db/__pycache__

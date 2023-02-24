@@ -3,6 +3,7 @@ version: '3.8'
 services:
   web:
     build: .
+    restart: unless-stopped
     command: python3 project/main.py
     volumes:
       - .:/app
