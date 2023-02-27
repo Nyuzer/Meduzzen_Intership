@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import databases
 import aioredis
 
+# Make sense to refactor it and put in core package
 
 load_dotenv('.env')
 
