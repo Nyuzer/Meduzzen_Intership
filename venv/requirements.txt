@@ -8,3 +8,6 @@ pytest-asyncio
 aioredis
 databases
 asyncpg
+alembic
+pydantic
+SQLAlchemy

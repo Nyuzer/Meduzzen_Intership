@@ -4,12 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import aioredis
 
-# issue #1 if add project in import, docker compose will not run but tests will be passed
-# if remove project in import docker compose will run but tests will give me an error that module db doesn't exist
 from db.connections import get_db
 
-# add env var from config.py
-# same issue here with 'project import' project.config
 import config
 
 app = FastAPI()
@@ -29,11 +25,9 @@ app.add_middleware(
 )
 
 
-# Error
-# socket.gaierror: [Errno 8] nodename nor servname provided, or not known
 @app.on_event("startup")
 async def startup():
-    redis = await aioredis.from_url('redis://redis')
+    redis = await aioredis.from_url(config.REDIS_URL)
 
     database = get_db()
     await database.connect()
