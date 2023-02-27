@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import aioredis
 
-from db.connections import get_db
+from db.connections import get_db, get_redis
 
 import config
 
@@ -27,7 +27,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    redis = await aioredis.from_url(config.REDIS_URL)
+    redis = await get_redis()
 
     database = get_db()
     await database.connect()
