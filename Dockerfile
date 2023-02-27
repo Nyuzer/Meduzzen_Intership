@@ -1,5 +1,8 @@
 FROM python:3.9
 
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
 WORKDIR /app
 
 COPY venv/requirements.txt .
@@ -9,7 +12,3 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV HOST 0.0.0.0
-ENV PORT 80
-
-CMD python3 -m pytest; uvicorn project.main:app --reload --host ${HOST} --port ${PORT}

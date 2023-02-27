@@ -5,3 +5,9 @@ pytest
 httpx
 anyio
 pytest-asyncio
+aioredis
+databases
+asyncpg
+alembic
+pydantic
+SQLAlchemy

@@ -1,12 +1,42 @@
-import os
-from dotenv import load_dotenv
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# add environment variables
-load_dotenv('../venv/.env')
+import aioredis
+
+from db.connections import get_db, get_redis
+
+import config
 
 app = FastAPI()
+
+# add CORS
+origins = [
+    "http://0.0.0.0:8000",
+    "http://localhost"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=origins,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
+
+@app.on_event("startup")
+async def startup():
+    redis = await get_redis()
+
+    database = get_db()
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    database = get_db()
+    await database.disconnect()
 
 
 @app.get('/')
@@ -19,4 +49,4 @@ def health_check():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=os.getenv('HOST'), port=int(os.getenv('PORT')))
+    uvicorn.run(app, host=config.HOST, port=int(config.PORT))
