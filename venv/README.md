@@ -40,3 +40,15 @@ Tests are run when you start the container. However, to do the tests when the co
 ```
 docker exec mycontainer pytest
 ```
+
+---
+# Alembic
+
+To create a migration, run the command below
+```
+alembic revision --autogenerate -m '<Name of your migration>'
+```
+And then migrate
+```
+alembic upgrade head
+```

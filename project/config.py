@@ -9,7 +9,9 @@ PORT = int(os.getenv('PORT'))
 # {os.getenv("HOST")}
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGERS_HOST = os.getenv("POSTGRES_HOST")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 POSTGRES_DB = os.getenv("POSTGRES_DB")
-DATABASE_URI = f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@db:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}'
+DATABASE_URI = f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@' \
+               f'{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}'
 REDIS_URL = os.getenv("REDIS_URL")

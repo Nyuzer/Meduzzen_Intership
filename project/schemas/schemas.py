@@ -5,9 +5,13 @@ from datetime import datetime
 
 
 class User(BaseModel):
+    id: int
     username: str
     email: EmailStr
-    hash_password: str
+    is_root: bool
+    status: str
+    time_created: datetime
+    time_updated: datetime
 
 
 class SigninUser(BaseModel):
@@ -15,18 +19,16 @@ class SigninUser(BaseModel):
     hash_password = str
 
 
-class SignupUser(User):
+class SignupUser(SigninUser):
     pass
 
 
-class UpdateUser(User):
-    pass
+class UpdateUser(BaseModel):
+    username: str
+    email: EmailStr
+    hash_password: str
+    status: str
 
 
 class ListUser(BaseModel):
-    id: int
-    username: str
-    email: EmailStr
-    is_root: bool
-    time_created: datetime
-    time_updated: datetime
+    users: list[User]

@@ -9,6 +9,8 @@ services:
       - .:/app
     env_file:
       - .env
+    environment:
+      - POSTGRES_HOST=db
     ports:
       - ${PORT}:${PORT}
     depends_on:
