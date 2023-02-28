@@ -1,16 +1,14 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from routes import routes
 
-import aioredis
+from project.db.connections import get_db, get_redis
 
-from db.connections import get_db, get_redis
-
-import config
+from project.config import HOST, PORT
 
 app = FastAPI()
 
-# add CORS
 origins = [
     "http://0.0.0.0:8000",
     "http://localhost"
@@ -38,6 +36,7 @@ async def shutdown():
     database = get_db()
     await database.disconnect()
 
+app.include_router(routes)
 
 @app.get('/')
 def health_check():
@@ -49,4 +48,4 @@ def health_check():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=config.HOST, port=int(config.PORT))
+    uvicorn.run(app, host=HOST, port=int(PORT))
