@@ -1,32 +1,43 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 from datetime import datetime
 
 
 class User(BaseModel):
     id: int
-    username: str
+    username: Optional[str] = None
     email: EmailStr
-    is_root: bool
-    status: str
+    is_root: Optional[bool]
+    status: Optional[str] = None
     time_created: datetime
     time_updated: datetime
 
+    class Config:
+        orm_mode = True
+
 
 class SigninUser(BaseModel):
-    email: EmailStr
-    hash_password = str
+    email: Optional[EmailStr]
+    hash_password: Optional[str]
+
+    class Config:
+        orm_mode = True
 
 
-class SignupUser(SigninUser):
-    pass
+class SignupUser(BaseModel):
+    email: Optional[EmailStr]
+    hash_password: Optional[str]
+
+    class Config:
+        orm_mode = True
 
 
 class UpdateUser(BaseModel):
-    username: str
-    email: EmailStr
-    hash_password: str
-    status: str
+    username: Optional[str]
+    email: Optional[EmailStr]
+    hash_password: Optional[str]
+    status: Optional[str]
 
 
 class ListUser(BaseModel):
