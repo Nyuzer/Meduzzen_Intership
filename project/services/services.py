@@ -1,4 +1,5 @@
-from project.db.connections import db
+from databases import Database
+
 from project.db.models import users
 from project.schemas.schemas import SignupUser, User, ListUser, UpdateUser
 from datetime import datetime
@@ -9,7 +10,7 @@ from typing import Optional
 
 
 class UserService:
-    def __init__(self, database):
+    def __init__(self, database: Database):
         self.db = database
 
     # Hashing password
@@ -30,27 +31,21 @@ class UserService:
         return new_key == key
 
     # Check password
+    # rewrite
     @staticmethod
     def is_acceptable_password(password: str) -> bool:
-        collect = set(password)
-        if len(list(filter(lambda x: x.isdigit(), collect))) >= 3 or \
-                len(list(filter(lambda x: x.isalpha(), collect))) >= 3 or (
-                        len(list(filter(lambda x: x.isdigit(), collect))) +
-                        len(list(filter(lambda x: x.isalpha(), collect))) >= 3):
-            if len(password) >= 9 and 'password' not in password.lower():
-                return True
-            elif 'password' not in password.lower():
-                return len(password) > 6 and 0 < len(list(filter(lambda x: x.isdigit(), password))) < len(password)
-        return False
+        return len(set(password)) > 5 and len(password) >= 8
 
     # services
     # read all
     async def get_users_list(self) -> ListUser:
+        """Return users list"""
         users_list = await self.db.fetch_all(query=users.select())
         return ListUser(users=[User(**item) for item in users_list])
 
     # read single
     async def get_user(self, pk: int) -> Optional[User]:
+        """Return user by pk"""
         query = users.select().where(users.c.id == pk)
         user = await self.db.fetch_one(query=query)
         if user is not None:
@@ -59,25 +54,30 @@ class UserService:
 
     # create
     async def creation_user(self, user: SignupUser) -> SignupUser:
-        # check password
+        """Create user. First check password after it create."""
         res_val = UserService.is_acceptable_password(user.hash_password)
         if res_val:
             hashed_password = UserService.hash_password(user.hash_password)
             new_user = users.insert().values(email=user.email, hash_password=hashed_password,
                                              time_created=datetime.utcnow(), time_updated=datetime.utcnow(),
                                              is_root=False)
-            return await db.execute(new_user)
+            created = await self.db.execute(new_user)
+            return SignupUser(email=user.email, hash_password=hashed_password, time_created=datetime.utcnow(),
+                              time_updated=datetime.utcnow(), is_root=False)
         return res_val
 
     # update
     # Add hash_password check
     async def update_user(self, pk: int, user: UpdateUser) -> UpdateUser:
-        update_user = users.update().where(users.c.id == pk).values(**user.dict())
-        return await db.execute(update_user)
+        """Update user here.
+        Also should rewrite this method, because user can enter any password"""
+        info = {k: v for k, v in user.dict().items() if v is not None}
+        update_user = users.update().where(users.c.id == pk).values(**info)
+        updated = await self.db.execute(update_user)
+        return UpdateUser(**info)
 
     # delete
     async def delete_user(self, pk: int):
+        """Delete user"""
         deleted_user = users.delete().where(users.c.id == pk)
-        if deleted_user is not None:
-            return await db.execute(deleted_user)
-        return None
+        return await self.db.execute(deleted_user)
