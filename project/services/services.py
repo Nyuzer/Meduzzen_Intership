@@ -70,7 +70,7 @@ class UserService:
     # Add hash_password check
     async def update_user(self, pk: int, user: UpdateUser) -> UpdateUser:
         """Update user here.
-        Also should rewrite this method, because user can enter any password"""
+        Also should rewrite this method, because user can enter any password and add validation for email"""
         info = {k: v for k, v in user.dict().items() if v is not None}
         update_user = users.update().where(users.c.id == pk).values(**info)
         updated = await self.db.execute(update_user)
