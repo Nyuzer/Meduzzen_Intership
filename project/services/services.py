@@ -1,11 +1,11 @@
 from databases import Database
+from sqlalchemy import func
 
 from project.db.models import users
 from project.schemas.schemas import SignupUser, User, ListUser, UpdateUser
 from datetime import datetime
+import bcrypt
 
-import os
-import hashlib
 from typing import Optional
 
 
@@ -16,31 +16,41 @@ class UserService:
     # Hashing password
     @staticmethod
     def hash_password(password: str) -> str:
-        salt = os.urandom(32)
-        key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
-        # result[:32] -- salt | result[32:] -- key
-        return (salt + key).decode('latin1')
+        password = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password, salt).decode('utf-8')
 
     # Compare entered password with password in storage
     @staticmethod
     def check_hashes(checked_password: str, key_pass: str) -> bool:
         # key_pass -- users hashed password
-        key_pass = key_pass.encode('latin1')
-        salt, key = key_pass[:32], key_pass[32:]
-        new_key = hashlib.pbkdf2_hmac('sha256', checked_password.encode('utf-8'), salt, 100000)
-        return new_key == key
+        checked_password = checked_password.encode('utf-8')
+        return bcrypt.checkpw(checked_password, key_pass.encode('utf-8'))
 
     # Check password
-    # rewrite
     @staticmethod
     def is_acceptable_password(password: str) -> bool:
         return len(set(password)) > 5 and len(password) >= 8
 
+    # To return schema User for update method
+    @staticmethod
+    async def get_updated_user_for_method_update(db: Database, pk: int) -> User:
+        user = await db.fetch_one(users.select().where(users.c.id == pk))
+        return User(**user)
+
+    @staticmethod
+    async def email_exists(db: Database, email: str) -> bool:
+        return True if await db.fetch_one(users.select().where(users.c.email == email)) else False
+
     # services
     # read all
-    async def get_users_list(self) -> ListUser:
-        """Return users list"""
-        users_list = await self.db.fetch_all(query=users.select())
+    async def get_users_list(self, page) -> ListUser:
+        """Return users list with pagination"""
+        limit = 10
+        query = users.select()
+        offset_page = page - 1
+        query = (query.offset(offset_page * limit).limit(limit))
+        users_list = await self.db.fetch_all(query=query)
         return ListUser(users=[User(**item) for item in users_list])
 
     # read single
@@ -53,31 +63,29 @@ class UserService:
         return None
 
     # create
-    async def creation_user(self, user: SignupUser) -> SignupUser:
+    async def creation_user(self, user: SignupUser) -> User:
         """Create user. First check password after it create."""
         res_val = UserService.is_acceptable_password(user.hash_password)
         if res_val:
             hashed_password = UserService.hash_password(user.hash_password)
-            new_user = users.insert().values(email=user.email, hash_password=hashed_password,
+            new_user = users.insert().values(email=user.email, hash_password=hashed_password, username=user.username,
                                              time_created=datetime.utcnow(), time_updated=datetime.utcnow(),
                                              is_root=False)
             created = await self.db.execute(new_user)
-            return SignupUser(email=user.email, hash_password=hashed_password, time_created=datetime.utcnow(),
-                              time_updated=datetime.utcnow(), is_root=False)
+            return User(id=created, email=user.email, hash_password=hashed_password, time_created=datetime.utcnow(),
+                        username=user.username, time_updated=datetime.utcnow(), is_root=False)
         return res_val
 
     # update
-    # Add hash_password check
-    async def update_user(self, pk: int, user: UpdateUser) -> UpdateUser:
-        """Update user here.
-        Also should rewrite this method, because user can enter any password and add validation for email"""
+    async def update_user(self, pk: int, user: UpdateUser) -> User:
+        """Update user here."""
         info = {k: v for k, v in user.dict().items() if v is not None}
         update_user = users.update().where(users.c.id == pk).values(**info)
         updated = await self.db.execute(update_user)
-        return UpdateUser(**info)
+        return await UserService.get_updated_user_for_method_update(db=self.db, pk=pk)
 
     # delete
     async def delete_user(self, pk: int):
         """Delete user"""
         deleted_user = users.delete().where(users.c.id == pk)
-        return await self.db.execute(deleted_user)
+        await self.db.execute(deleted_user)

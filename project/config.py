@@ -24,5 +24,5 @@ TEST_POSTGRES_DB = os.getenv("TEST_POSTGRES_DB")
 TEST_POSTGRES_HOST = os.getenv("TEST_POSTGRES_HOST")
 TEST_POSTGRES_PORT = os.getenv("TEST_POSTGRES_PORT")
 
-TEST_DATABASE_URI = f'postgresql://{os.getenv("TEST_POSTGRES_USER")}:{os.getenv("TEST_POSTGRES_PASSWORD")}@' \
+TEST_DATABASE_URI = f'postgresql+asyncpg://{os.getenv("TEST_POSTGRES_USER")}:{os.getenv("TEST_POSTGRES_PASSWORD")}@' \
                f'{os.getenv("TEST_POSTGRES_HOST")}:{os.getenv("TEST_POSTGRES_PORT")}/{os.getenv("TEST_POSTGRES_DB")}'

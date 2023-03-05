@@ -18,16 +18,18 @@ class User(BaseModel):
 
 
 class SigninUser(BaseModel):
-    email: Optional[EmailStr]
-    hash_password: Optional[str]
+    email: EmailStr
+    username: str
+    hash_password: str
 
     class Config:
         orm_mode = True
 
 
 class SignupUser(BaseModel):
-    email: Optional[EmailStr]
-    hash_password: Optional[str]
+    email: EmailStr
+    username: str
+    hash_password: str
 
     class Config:
         orm_mode = True
@@ -35,7 +37,6 @@ class SignupUser(BaseModel):
 
 class UpdateUser(BaseModel):
     username: Optional[str]
-    email: Optional[EmailStr]
     hash_password: Optional[str]
     status: Optional[str]
 
