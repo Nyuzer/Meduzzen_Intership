@@ -38,6 +38,7 @@ class UserService:
         user = await db.fetch_one(users.select().where(users.c.id == pk))
         return User(**user)
 
+    # Check email if exists
     @staticmethod
     async def email_exists(db: Database, email: str) -> bool:
         return True if await db.fetch_one(users.select().where(users.c.email == email)) else False
