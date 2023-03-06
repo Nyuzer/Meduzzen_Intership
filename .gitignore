@@ -4,3 +4,7 @@
 project/__pycache__
 tests/__pycache__
 project/db/__pycache__
+migrations/__pycache__
+project/routers/__pycache__
+project/schemas/__pycache__
+project/services/__pycache__

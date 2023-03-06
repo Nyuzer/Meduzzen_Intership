@@ -6,28 +6,39 @@ from datetime import datetime
 
 class User(BaseModel):
     id: int
-    username: str
+    username: Optional[str] = None
     email: EmailStr
-    is_root: bool
-    status: str
+    is_root: Optional[bool]
+    status: Optional[str] = None
     time_created: datetime
     time_updated: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class SigninUser(BaseModel):
     email: EmailStr
-    hash_password = str
+    username: str
+    hash_password: str
+
+    class Config:
+        orm_mode = True
 
 
-class SignupUser(SigninUser):
-    pass
+class SignupUser(BaseModel):
+    email: EmailStr
+    username: str
+    hash_password: str
+
+    class Config:
+        orm_mode = True
 
 
 class UpdateUser(BaseModel):
-    username: str
-    email: EmailStr
-    hash_password: str
-    status: str
+    username: Optional[str]
+    hash_password: Optional[str]
+    status: Optional[str]
 
 
 class ListUser(BaseModel):

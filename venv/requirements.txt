@@ -10,5 +10,7 @@ databases
 asyncpg
 alembic
 pydantic
+pydantic[email]
 SQLAlchemy
 psycopg2
+bcrypt

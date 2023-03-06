@@ -12,6 +12,9 @@ DATABASE_URL = f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_
 
 db = databases.Database(DATABASE_URL)
 
+TEST_DATABASE_URL = f'postgresql://{os.getenv("TEST_POSTGRES_USER")}:{os.getenv("TEST_POSTGRES_PASSWORD")}@' \
+               f'{os.getenv("TEST_POSTGRES_HOST")}:{os.getenv("TEST_POSTGRES_PORT")}/{os.getenv("TEST_POSTGRES_DB")}'
+
 
 def get_db():
     return db
