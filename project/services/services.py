@@ -1,8 +1,7 @@
 from databases import Database
-from sqlalchemy import func
 
 from project.db.models import users
-from project.schemas.schemas import SignupUser, User, ListUser, UpdateUser
+from project.schemas.schemas import SignupUser, User, ListUser, UpdateUser, SigninUser
 from datetime import datetime
 import bcrypt
 
@@ -42,6 +41,20 @@ class UserService:
     @staticmethod
     async def email_exists(db: Database, email: str) -> bool:
         return True if await db.fetch_one(users.select().where(users.c.email == email)) else False
+
+    # method to find id by email and return User
+    async def find_me(self, email: str) -> User:
+        user = await self.db.fetch_one(users.select().where(users.c.email == email))
+        return User(**user)
+
+    # authenticate user
+    async def user_authentication(self, user: SigninUser) -> bool:
+        if await UserService.email_exists(db=self.db, email=user.email):
+            user_db = await self.db.fetch_one(users.select().where(users.c.email == user.email))
+            user_db = UpdateUser(**user_db)
+            return True if UserService.check_hashes(checked_password=user.hash_password,
+                                                    key_pass=user_db.hash_password) else False
+        return False
 
     # services
     # read all

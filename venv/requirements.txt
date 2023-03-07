@@ -14,3 +14,4 @@ pydantic[email]
 SQLAlchemy
 psycopg2
 bcrypt
+python-jose

@@ -26,3 +26,7 @@ TEST_POSTGRES_PORT = os.getenv("TEST_POSTGRES_PORT")
 
 TEST_DATABASE_URI = f'postgresql+asyncpg://{os.getenv("TEST_POSTGRES_USER")}:{os.getenv("TEST_POSTGRES_PASSWORD")}@' \
                f'{os.getenv("TEST_POSTGRES_HOST")}:{os.getenv("TEST_POSTGRES_PORT")}/{os.getenv("TEST_POSTGRES_DB")}'
+
+ALGORITHM = os.getenv('ALGORITHM')
+SECRET_KEY = os.getenv('SECRET_KEY')
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
