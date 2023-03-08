@@ -112,5 +112,6 @@ async def get_current_user(token: TokenResponse, db: Database) -> User:
     if result.get('status'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
     else:
+        print(result)
         return result
 
