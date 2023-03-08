@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import HTTPBearer
 import sys
 
 sys.path = ['', '..'] + sys.path[1:]
 
 from project.schemas.schemas import User, SigninUser, SignupUser, ListUser, UpdateUser, TokenResponse
-from project.services.services import UserService
+from project.services.services import UserService, get_current_user
 from project.db.connections import get_db
-from project.core.security import create_access_token, decode_token
+from project.core.security import create_access_token
 from databases import Database
 
 # user_service = UserService(db)
@@ -64,6 +65,8 @@ async def user_delete(pk: int, db: Database = Depends(get_db)):
     await user_service.delete_user(pk=pk)
 
 
+# assasasas@example.com
+# String123123123lascxz
 @router.post('/login', response_model=TokenResponse)
 async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
     user_service = UserService(database=db)
@@ -71,13 +74,10 @@ async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> T
         return create_access_token({'email': user.email})
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
 
+token_auth_scheme = HTTPBearer()
 
-# assasasas@example.com
-# String123123123lascxz
+
+# token: TokenResponse = Depends(token_auth_scheme)
 @router.post('/me', response_model=User)
-async def login_for_token(token: TokenResponse, db: Database = Depends(get_db)) -> User:
-    user_service = UserService(database=db)
-    email = decode_token(token=token)
-    if email is not None:
-        return await user_service.find_me(email)
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
+async def auth_me(token: TokenResponse = Depends(token_auth_scheme), db: Database = Depends(get_db)) -> User:
+    return await get_current_user(token=token, db=db)

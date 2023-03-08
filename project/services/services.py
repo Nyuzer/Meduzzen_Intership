@@ -1,7 +1,9 @@
+from fastapi import HTTPException, status
 from databases import Database
 
 from project.db.models import users
-from project.schemas.schemas import SignupUser, User, ListUser, UpdateUser, SigninUser
+from project.schemas.schemas import SignupUser, User, ListUser, UpdateUser, SigninUser, TokenResponse
+from project.core.security import decode_token, VerifyToken
 from datetime import datetime
 import bcrypt
 
@@ -42,18 +44,13 @@ class UserService:
     async def email_exists(db: Database, email: str) -> bool:
         return True if await db.fetch_one(users.select().where(users.c.email == email)) else False
 
-    # method to find id by email and return User
-    async def find_me(self, email: str) -> User:
-        user = await self.db.fetch_one(users.select().where(users.c.email == email))
-        return User(**user)
-
     # authenticate user
     async def user_authentication(self, user: SigninUser) -> bool:
         if await UserService.email_exists(db=self.db, email=user.email):
             user_db = await self.db.fetch_one(users.select().where(users.c.email == user.email))
             user_db = UpdateUser(**user_db)
-            return True if UserService.check_hashes(checked_password=user.hash_password,
-                                                    key_pass=user_db.hash_password) else False
+            return UserService.check_hashes(checked_password=user.hash_password,
+                                            key_pass=user_db.hash_password)
         return False
 
     # services
@@ -103,3 +100,17 @@ class UserService:
         """Delete user"""
         deleted_user = users.delete().where(users.c.id == pk)
         await self.db.execute(deleted_user)
+
+
+# func to find id by email and return User
+async def get_current_user(token: TokenResponse, db: Database) -> User:
+    email = decode_token(token=token)
+    if email:
+        user = await db.fetch_one(users.select().where(users.c.email == email))
+        return User(**user)
+    result = VerifyToken(token.credentials).verify()
+    if result.get('status'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
+    else:
+        return result
+

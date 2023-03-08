@@ -30,3 +30,8 @@ TEST_DATABASE_URI = f'postgresql+asyncpg://{os.getenv("TEST_POSTGRES_USER")}:{os
 ALGORITHM = os.getenv('ALGORITHM')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
+
+DOMAIN = os.getenv('DOMAIN')
+API_AUDIENCE = os.getenv('API_AUDIENCE')
+ISSUER = os.getenv('ISSUER')
+ALGORITHMS = os.getenv('ALGORITHMS')
