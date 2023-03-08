@@ -1,4 +1,6 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from project.db.connections import get_db
+from fastapi.security import HTTPBearer
 from databases import Database
 
 from project.db.models import users
@@ -8,6 +10,7 @@ from datetime import datetime
 import bcrypt
 
 from typing import Optional
+import random
 
 
 class UserService:
@@ -43,6 +46,21 @@ class UserService:
     @staticmethod
     async def email_exists(db: Database, email: str) -> bool:
         return True if await db.fetch_one(users.select().where(users.c.email == email)) else False
+
+    # fetch user by email
+    @staticmethod
+    async def user_by_email(db: Database, email: str) -> User:
+        user = await db.fetch_one(users.select().where(users.c.email == email))
+        return User(**user)
+
+    # generate random username and password
+    @staticmethod
+    def faker_user(email: str) -> SignupUser:
+        username = 'user_' + str(random.randint(1000000, 9999999))
+        hash_password = ''.join([random.choice('A B C D E F G H I K L M N O P Q R S T V X Y Z'.split())
+                                 for i in range(10)])
+        hash_password += ''.join([str(random.choice(list(range(100, 1000)))) for i in range(5)])
+        return SignupUser(email=email, username=username, hash_password=hash_password)
 
     # authenticate user
     async def user_authentication(self, user: SigninUser) -> bool:
@@ -83,7 +101,7 @@ class UserService:
                                              time_created=datetime.utcnow(), time_updated=datetime.utcnow(),
                                              is_root=False)
             created = await self.db.execute(new_user)
-            return User(id=created, email=user.email, hash_password=hashed_password, time_created=datetime.utcnow(),
+            return User(id=created, email=user.email, time_created=datetime.utcnow(),
                         username=user.username, time_updated=datetime.utcnow(), is_root=False)
         return res_val
 
@@ -102,16 +120,26 @@ class UserService:
         await self.db.execute(deleted_user)
 
 
+token_auth_scheme = HTTPBearer()
+
+
 # func to find id by email and return User
-async def get_current_user(token: TokenResponse, db: Database) -> User:
+async def get_current_user(token: TokenResponse = Depends(token_auth_scheme), db: Database = Depends(get_db)) -> User:
     email = decode_token(token=token)
     if email:
-        user = await db.fetch_one(users.select().where(users.c.email == email))
-        return User(**user)
+        return await UserService.user_by_email(db, email)
     result = VerifyToken(token.credentials).verify()
     if result.get('status'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
     else:
-        print(result)
-        return result
+        """if result.get('email'):
+            if UserService.email_exists(db, result.get('email')):
+                return await UserService.user_by_email(db, email)
+            user_service = UserService(database=db)
+            return await user_service.creation_user(UserService.faker_user(result.get('email')))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")"""
+        if UserService.email_exists(db, result.get('email')):
+            return await UserService.user_by_email(db, email)
+        user_service = UserService(database=db)
+        return await user_service.creation_user(UserService.faker_user(result.get('email')))
 

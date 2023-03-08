@@ -74,10 +74,9 @@ async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> T
         return create_access_token({'email': user.email})
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
 
-token_auth_scheme = HTTPBearer()
 
-
+# Add Depends get_current_user, посмотреть на записи
 # token: TokenResponse = Depends(token_auth_scheme)
 @router.post('/me', response_model=User)
-async def auth_me(token: TokenResponse = Depends(token_auth_scheme), db: Database = Depends(get_db)) -> User:
-    return await get_current_user(token=token, db=db)
+async def auth_me(user: User = Depends(get_current_user)) -> User:
+    return user
