@@ -127,7 +127,7 @@ token_auth_scheme = HTTPBearer()
 async def get_current_user(token: TokenResponse = Depends(token_auth_scheme), db: Database = Depends(get_db)) -> User:
     email = decode_token(token=token)
     if email:
-        return await UserService.user_by_email(db, email)
+        return await UserService.user_by_email(db=db, email=email)
     result = VerifyToken(token.credentials).verify()
     if result.get('status'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
@@ -139,7 +139,7 @@ async def get_current_user(token: TokenResponse = Depends(token_auth_scheme), db
             return await user_service.creation_user(UserService.faker_user(result.get('email')))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")"""
         if UserService.email_exists(db, result.get('email')):
-            return await UserService.user_by_email(db, email)
+            return await UserService.user_by_email(db=db, email=email)
         user_service = UserService(database=db)
         return await user_service.creation_user(UserService.faker_user(result.get('email')))
 
