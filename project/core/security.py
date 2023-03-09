@@ -11,7 +11,7 @@ def create_access_token(data: dict) -> TokenResponse:
     expire = time.time() + int(ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"expiry": expire})
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return TokenResponse(token=token)
+    return TokenResponse(token=token, token_type='Bearer')
 
 
 def decode_token(token: TokenResponse):

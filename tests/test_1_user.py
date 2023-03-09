@@ -139,3 +139,41 @@ async def test_get_users_list_after_delete(ac: AsyncClient):
     response = await ac.get("/users/")
     assert response.status_code == 200
     assert len(response.json().get("users")) == 2
+
+
+async def test_bad_login_try(ac: AsyncClient):
+    payload = {
+        "email": "test2@test.com",
+        "hash_password": "tess",
+    }
+    response = await ac.post("/users/login", json=payload)
+    assert response.status_code == 401
+    assert response.json().get('detail') == 'Incorrect username or password'
+
+
+async def test_login_try(ac: AsyncClient, login_user):
+    response = await login_user("test2@test.com", "Testpassword123")
+    assert response.status_code == 200
+    assert response.json().get('token_type') == 'Bearer'
+
+
+async def test_auth_me(ac: AsyncClient, users_tokens):
+    print("##################################################")
+    print(users_tokens['test2@test.com'])
+    print("##################################################")
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}"
+    }
+    response = await ac.get("/users/me", headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('username') == "test2"
+    assert response.json().get('email') == "test2@test.com"
+    assert response.json().get('id') == 2
+
+
+async def test_bad_auth_me(ac: AsyncClient):
+    headers = {
+        "Authorization": f"Bearer sdffaf.afdsg.rtrwtrete",
+    }
+    response = await ac.get("/users/me", headers=headers)
+    assert response.status_code == 401

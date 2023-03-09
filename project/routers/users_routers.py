@@ -72,7 +72,7 @@ async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> T
     user_service = UserService(database=db)
     if await user_service.user_authentication(user=user):
         return create_access_token({'email': user.email})
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
 
 
 # token: TokenResponse = Depends(token_auth_scheme)
