@@ -6,8 +6,8 @@ from project.config import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, D
 from project.schemas.schemas import TokenResponse
 
 
-def create_access_token(data: dict) -> TokenResponse:
-    to_encode = data.copy()
+def create_access_token(data: str) -> TokenResponse:
+    to_encode = {'email': data}
     expire = time.time() + int(ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"expiry": expire})
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

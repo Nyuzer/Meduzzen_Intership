@@ -67,7 +67,7 @@ async def login_user(ac: AsyncClient, users_tokens):
             "email": user_email,
             "hash_password": user_password,
         }
-        response = await ac.post("/users/login", json=payload)
+        response = await ac.post("/auth/login", json=payload)
         if response.status_code != 200:
             return response
         user_token = response.json().get('token')

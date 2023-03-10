@@ -146,7 +146,7 @@ async def test_bad_login_try(ac: AsyncClient):
         "email": "test2@test.com",
         "hash_password": "tess",
     }
-    response = await ac.post("/users/login", json=payload)
+    response = await ac.post("/auth/login", json=payload)
     assert response.status_code == 401
     assert response.json().get('detail') == 'Incorrect username or password'
 

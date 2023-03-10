@@ -1,13 +1,11 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import HTTPBearer
 import sys
 
 sys.path = ['', '..'] + sys.path[1:]
 
-from project.schemas.schemas import User, SigninUser, SignupUser, ListUser, UpdateUser, TokenResponse
-from project.services.services import UserService, get_current_user
+from project.schemas.schemas import User, SignupUser, ListUser, UpdateUser
+from project.services.services import UserService
 from project.db.connections import get_db
-from project.core.security import create_access_token
 from databases import Database
 
 # user_service = UserService(db)
@@ -63,13 +61,3 @@ async def user_delete(pk: int, db: Database = Depends(get_db)):
     if is_user_exist is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The user does not exist")
     await user_service.delete_user(pk=pk)
-
-
-# assasasas@example.com
-# String123123123lascxz
-@router.post('/login', response_model=TokenResponse)
-async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
-    user_service = UserService(database=db)
-    if await user_service.user_authentication(user=user):
-        return create_access_token({'email': user.email})
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
