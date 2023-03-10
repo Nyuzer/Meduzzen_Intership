@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends
 from project.db.connections import get_db
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from databases import Database
 
 from project.db.models import users
@@ -45,7 +45,10 @@ class UserService:
     # Check email if exists
     @staticmethod
     async def email_exists(db: Database, email: str) -> bool:
-        return True if await db.fetch_one(users.select().where(users.c.email == email)) else False
+        user_by_email = await db.fetch_one(users.select().where(users.c.email == email))
+        if user_by_email is not None:
+            return True
+        return False
 
     # fetch user by email
     @staticmethod

@@ -158,13 +158,11 @@ async def test_login_try(ac: AsyncClient, login_user):
 
 
 async def test_auth_me(ac: AsyncClient, users_tokens):
-    print("##################################################")
-    print(users_tokens['test2@test.com'])
-    print("##################################################")
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}"
     }
-    response = await ac.get("/users/me", headers=headers)
+    response = await ac.post("/auth/me", headers=headers)
+    print(response.json())
     assert response.status_code == 200
     assert response.json().get('username') == "test2"
     assert response.json().get('email') == "test2@test.com"
@@ -175,5 +173,5 @@ async def test_bad_auth_me(ac: AsyncClient):
     headers = {
         "Authorization": f"Bearer sdffaf.afdsg.rtrwtrete",
     }
-    response = await ac.get("/users/me", headers=headers)
+    response = await ac.post("/auth/me", headers=headers)
     assert response.status_code == 401
