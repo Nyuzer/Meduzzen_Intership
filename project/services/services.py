@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends
 from project.db.connections import get_db
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from databases import Database
 
 from project.db.models import users

@@ -18,6 +18,11 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
 
 # userfortests@gmail.com
 # Password01923
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJmb3J0ZXN0c0BnbWFpbC5jb20iLCJleHBpcnkiOjE2Nzg2NjM2MTQuNDY0NzEwNX0.nVMehaQz-A2FdRLtUS5Gy5Yxq58RJnZPiTb6zPq1Jd0
+
+# 111111user@example.com
+# string012345
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjExMTExMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzg2NjQ1MTYuNDAxOTI1OH0.T1JNLBGzDmNM0WYegJZ6hh536Ee9nS1mOtyqq7L2sog
 @router.post('/login', response_model=TokenResponse)
 async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
     user_service = UserService(database=db)
