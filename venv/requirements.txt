@@ -17,3 +17,4 @@ bcrypt
 python-jose
 PyJWT==2.1.0
 cryptography
+SQLAlchemy-Utils
