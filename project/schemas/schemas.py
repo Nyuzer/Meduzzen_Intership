@@ -19,7 +19,6 @@ class User(BaseModel):
 
 class SigninUser(BaseModel):
     email: EmailStr
-    username: str
     hash_password: str
 
     class Config:
@@ -43,3 +42,8 @@ class UpdateUser(BaseModel):
 
 class ListUser(BaseModel):
     users: list[User]
+
+
+class TokenResponse(BaseModel):
+    token: str
+    token_type: str

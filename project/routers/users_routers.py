@@ -3,7 +3,7 @@ import sys
 
 sys.path = ['', '..'] + sys.path[1:]
 
-from project.schemas.schemas import User, SigninUser, SignupUser, ListUser, UpdateUser
+from project.schemas.schemas import User, SignupUser, ListUser, UpdateUser
 from project.services.services import UserService
 from project.db.connections import get_db
 from databases import Database
