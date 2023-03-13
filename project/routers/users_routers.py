@@ -3,7 +3,7 @@ import sys
 
 sys.path = ['', '..'] + sys.path[1:]
 
-from project.services.services import get_current_user
+from project.services.services import get_current_user, validate_user
 from project.schemas.schemas import User, SignupUser, ListUser, UpdateUser
 from project.services.services import UserService
 from project.db.connections import get_db
@@ -45,7 +45,7 @@ async def user_create(user: SignupUser, db: Database = Depends(get_db)) -> User:
 @router.put('/{pk}', status_code=200, response_model=User)
 async def user_update(pk: int, user: UpdateUser, db: Database = Depends(get_db),
                       user_from_db: User = Depends(get_current_user)) -> User:
-    if pk != user_from_db.id:
+    if validate_user(pk=pk, user_id=user_from_db.id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your account")
     user_service = UserService(database=db)
     is_user_exist = await user_service.get_user(pk=pk)
@@ -61,7 +61,7 @@ async def user_update(pk: int, user: UpdateUser, db: Database = Depends(get_db),
 
 @router.delete('/{pk}', status_code=200)
 async def user_delete(pk: int, db: Database = Depends(get_db), user_from_db: User = Depends(get_current_user)):
-    if pk != user_from_db.id:
+    if validate_user(pk=pk, user_id=user_from_db.id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="It's not your account")
     user_service = UserService(database=db)
     is_user_exist = await user_service.get_user(pk=pk)

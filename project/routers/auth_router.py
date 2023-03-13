@@ -22,7 +22,7 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
 
 # 111111user@example.com
 # string012345
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjExMTExMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzg2NjQ1MTYuNDAxOTI1OH0.T1JNLBGzDmNM0WYegJZ6hh536Ee9nS1mOtyqq7L2sog
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjExMTExMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzg2OTk3MDQuMTY1Nzk4Mn0.W_DUGJUXqIEkSn9tKYu0CYw4Vd5SqdL5a_yon2iVCZs
 @router.post('/login', response_model=TokenResponse)
 async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
     user_service = UserService(database=db)

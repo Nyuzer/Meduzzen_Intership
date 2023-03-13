@@ -141,3 +141,7 @@ async def get_current_user(token: TokenResponse = Depends(token_auth_scheme), db
             user_service = UserService(database=db)
             return await user_service.creation_user(user=UserService.faker_user(email=result.get('user_email')))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
+
+
+def validate_user(pk: int, user_id: int) -> bool:
+    return pk != user_id

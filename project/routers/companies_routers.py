@@ -40,7 +40,7 @@ async def company_create(company: CompanyCreate, db: Database = Depends(get_db),
     raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Invalid information')
 
 
-@router.put('/{pk}', status_code=201, response_model=Company)
+@router.put('/{pk}', status_code=200, response_model=Company)
 async def company_update(pk: int, company: CompanyUpdate, db: Database = Depends(get_db),
                          user: User = Depends(get_current_user)) -> Company:
     companies = CompanyService(database=db)
