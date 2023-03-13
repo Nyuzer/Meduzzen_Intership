@@ -16,8 +16,8 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-# assasasas@example.com
-# String123123123lascxz
+# userfortests@gmail.com
+# Password01923
 @router.post('/login', response_model=TokenResponse)
 async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
     user_service = UserService(database=db)
