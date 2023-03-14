@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends
 from project.db.connections import get_db
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from databases import Database
 
 from project.db.models import users
@@ -141,3 +141,7 @@ async def get_current_user(token: TokenResponse = Depends(token_auth_scheme), db
             user_service = UserService(database=db)
             return await user_service.creation_user(user=UserService.faker_user(email=result.get('user_email')))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token incorrect.")
+
+
+def validate_user(pk: int, user_id: int) -> bool:
+    return pk != user_id

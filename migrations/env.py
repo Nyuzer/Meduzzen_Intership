@@ -7,7 +7,7 @@ from alembic import context
 
 from project.db.db import SQLALCHEMY_DATABASE_URL
 
-from project.db.models import User, Base
+from project.db.models import User, Base, Company
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
