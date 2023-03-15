@@ -37,7 +37,7 @@ class Company(Base):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
-    user = relationship("User", secondary="CompanyRequests", back_populates="company")
+    user = relationship("User", secondary="CompanyRequests", back_populates="company", cascade='all, delete')
 
 
 companies = Company.__table__
@@ -52,7 +52,7 @@ class CompanyMembers(Base):
     __tablename__ = 'companies_members'
 
     id = Column(Integer, primary_key=True, index=True, unique=True)
-    company_id = Column(Integer, ForeignKey('companies.id'))
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'))
     user_id = Column(Integer, ForeignKey('users.id'))
     role = Column(ChoiceType(TYPES))
 
@@ -62,17 +62,17 @@ company_members = CompanyMembers.__table__
 
 class Action(Base):
     TYPES = [
-        ('invited', 'Invited'),
-        ('accession-request', 'Accession request')
+        ('invited', 'Invited to company'),
+        ('accession-request', 'Accession request to company')
     ]
 
     __tablename__ = 'actions'
 
     id = Column(Integer, primary_key=True, index=True, unique=True)
-    company_id = Column(Integer, ForeignKey('companies.id'))
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'))
     user_id = Column(Integer, ForeignKey('users.id'))
-    owner_id = Column(Integer, ForeignKey('users.id'))
     type_of_request = Column(ChoiceType(TYPES))
+    invite_message = Column(String(150), nullable=True)
 
 
 actions = Action.__table__

@@ -22,9 +22,9 @@ TYPES = [
 ]
 
 TYPES2 = [
-        ('invited', 'Invited'),
-        ('accession-request', 'Accession request')
-    ]
+    ('invited', 'Invited to company'),
+    ('accession-request', 'Accession request to company')
+]
 
 
 def upgrade() -> None:

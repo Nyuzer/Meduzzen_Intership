@@ -1,5 +1,5 @@
 from project.schemas.schemas_comp import Company, CompanyCreate, CompanyUpdate, ListCompany
-from project.db.models import companies
+from project.db.models import companies, company_members
 
 from datetime import datetime
 
@@ -48,12 +48,14 @@ class CompanyService:
 
     # create
     async def company_create(self, user_id: int, company: CompanyCreate) -> Company:
-        """Create a new company"""
+        """Create a new company and add owner"""
         if not company.name:
             return None
         query = companies.insert().values(name=company.name, description=company.description, owner_id=user_id,
                                           time_created=datetime.utcnow(), time_updated=datetime.utcnow())
         created = await self.db.execute(query)
+        # here add user to Company Members as owner
+        await self.db.execute(company_members.insert().values(user_id=user_id, company_id=created, role=u'owner'))
         return Company(id=created, name=company.name, description=company.description, owner_id=user_id,
                        time_created=datetime.utcnow(), time_updated=datetime.utcnow())
 
