@@ -28,11 +28,11 @@ async def get_company_access_requests(pk: int, db: Database = Depends(get_db),
 # Returns all invites from company to users
 @router.get('/company/{pk}/my', response_model=ListOwnerSendInvite)
 async def get_company_invites(pk: int, db: Database = Depends(get_db),
-                              user: User = Depends(get_current_user)) -> ListOwnerRequests:
+                              user: User = Depends(get_current_user)) -> ListOwnerSendInvite:
     companies = CompanyService(database=db)
     if await companies.get_company(pk=pk) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The company does not exist")
     actions = ActionsService(database=db)
     if await actions.check_owner(company_id=pk, user_id=user.id):
-        pass
+        return await actions.get_company_invites(pk=pk)
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="it's not your company")
