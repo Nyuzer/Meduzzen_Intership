@@ -65,7 +65,7 @@ async def company_delete(pk: int, db: Database = Depends(get_db), user: User = D
 
 # userexample@example.com
 # UserExample321
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJleGFtcGxlQGV4YW1wbGUuY29tIiwiZXhwaXJ5IjoxNjc4ODIzNjAwLjQ0OTY2OX0.D0TJTDM1z2-DALKgcgY_cSbDn_cRRIs72XG0Z-stWVA
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJleGFtcGxlQGV4YW1wbGUuY29tIiwiZXhwaXJ5IjoxNjc4OTE5MTk2LjYwNTYyMDR9.qoZz3haGjcfncbIYxMO2yKPR24W14gzCYLV-44ICPgk
 # comp id = 6
 @router.get('/{pk}/members', status_code=200, response_model=ListMember)
 async def company_get_members(pk: int, db: Database = Depends(get_db),
