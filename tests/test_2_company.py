@@ -37,7 +37,7 @@ async def test_create_company_one(users_tokens, ac: AsyncClient):
 
 async def test_create_company_two(users_tokens, ac: AsyncClient):
     headers = {
-        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
     payload = {
         "name": "test_company_2",
@@ -49,7 +49,7 @@ async def test_create_company_two(users_tokens, ac: AsyncClient):
 
 async def test_create_company_three(users_tokens, ac: AsyncClient):
     headers = {
-        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
     }
     payload = {
         "name": "test_company_3",
@@ -93,12 +93,11 @@ async def test_get_company_by_id_tw(users_tokens, ac: AsyncClient):
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
     response = await ac.get("/company/2", headers=headers)
-    print('Сюда не доходит')
     assert response.status_code == 200
     assert response.json().get("id") == 2
     assert response.json().get("name") == "test_company_2"
     assert response.json().get("description") == None
-    assert response.json().get("owner_id") == 1
+    assert response.json().get("owner_id") == 2
 
 
 async def test_bad_update_company__unauthorized(ac: AsyncClient):
@@ -150,18 +149,15 @@ async def test_bad_delete_company_one__user_not_owner(users_tokens, ac: AsyncCli
     headers = {
         "Authorization": f"Bearer {users_tokens['test2@test.com']}",
     }
-    print('############################')
-    print(headers)
     response = await ac.delete("/company/1", headers=headers)
-    print('Сюда не доходит')
     assert response.status_code == 403
 
 
-async def test_delete_company_one(users_tokens, ac: AsyncClient):
+async def test_delete_company_three(users_tokens, ac: AsyncClient):
     headers = {
-        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
     }
-    response = await ac.delete("/company/1", headers=headers)
+    response = await ac.delete("/company/3", headers=headers)
     assert response.status_code == 200
 
 

@@ -16,13 +16,23 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-# userfortests@gmail.com
-# Password01923
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJmb3J0ZXN0c0BnbWFpbC5jb20iLCJleHBpcnkiOjE2Nzg2NjM2MTQuNDY0NzEwNX0.nVMehaQz-A2FdRLtUS5Gy5Yxq58RJnZPiTb6zPq1Jd0
-
 # 111111user@example.com
 # string012345
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjExMTExMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzg2OTk3MDQuMTY1Nzk4Mn0.W_DUGJUXqIEkSn9tKYu0CYw4Vd5SqdL5a_yon2iVCZs
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjExMTExMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2NzkyMjgwMjYuMDA2MzU0Nn0.JLLP2IR_qyEo5G9LIXeFBBYpxoe_fAkHQjoA5PGlkIM
+
+# "id": 32,
+# "username": "strasaing",
+# "email": "111111user@example.com",
+
+# 010101user@example.com
+# Miniasas01234
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjAxMDEwMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2NzkyNTAyNTkuOTIxMjEzOX0.bOleH0CKhyq3O8AbjW_AYtYmmsc2MtqyWNNUVlCBHTk
+
+# "id": 8,
+# "name": "Miniasas01234",
+# "description": "Abiaib",
+# "owner_id": 34,
+
 @router.post('/login', response_model=TokenResponse)
 async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
     user_service = UserService(database=db)

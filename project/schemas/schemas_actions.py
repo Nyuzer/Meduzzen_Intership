@@ -14,7 +14,9 @@ class ListMember(BaseModel):
 
 # users requests to join company
 class UserRequests(BaseModel):
+    id: int
     company_id: int
+    invite_message: str
 
 
 class ListUserRequests(BaseModel):
@@ -22,16 +24,18 @@ class ListUserRequests(BaseModel):
 
 
 class UserInvites(BaseModel):
+    id: int
     company_id: int
     invite_message: str
 
 
 class ListUserInvites(BaseModel):
-    result = list[UserInvites]
+    result: list[UserInvites]
 
 
 # requests to join company
 class OwnerRequests(BaseModel):
+    id: int
     user_id: int
     company_id: int
     type_of_request: str
@@ -52,7 +56,6 @@ class OwnerSendInvite(BaseModel):
 # for creation, without id
 class OwnerSendInvitePost(BaseModel):
     user_id: int
-    company_id: int
     invite_message: str
 
 
@@ -62,3 +65,8 @@ class ListOwnerSendInvite(BaseModel):
 
 class UserSendAccessionRequest(BaseModel):
     company_id: int
+    invite_message: str
+
+
+class ResponseSuccess(BaseModel):
+    detail: str
