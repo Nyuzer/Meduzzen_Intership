@@ -37,6 +37,8 @@ class ActionsService:
         result = await self.db.fetch_one(query)
         return result.user_id == user_id
 
+    # Fix it
+    # same method in services company -> check_access
     async def check_owner(self, company_id: int, user_id: int) -> bool:
         query = companies.select().where(companies.c.id == company_id)
         item = await self.db.fetch_one(query)

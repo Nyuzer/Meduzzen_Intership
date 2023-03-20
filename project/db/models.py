@@ -46,7 +46,8 @@ companies = Company.__table__
 class CompanyMembers(Base):
     TYPES = [
         ('general-user', 'General user'),
-        ('owner', 'Owner')
+        ('owner', 'Owner'),
+        ('admin', 'Admin')
     ]
 
     __tablename__ = 'companies_members'

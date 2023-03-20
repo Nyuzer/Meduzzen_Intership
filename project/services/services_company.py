@@ -1,5 +1,6 @@
 from project.schemas.schemas_comp import Company, CompanyCreate, CompanyUpdate, ListCompany
 from project.db.models import companies, company_members
+from project.schemas.schemas_actions import ResponseSuccess, ListMember, Member
 
 from datetime import datetime
 
@@ -11,6 +12,12 @@ from databases import Database
 class CompanyService:
     def __init__(self, database: Database):
         self.db = database
+
+    async def is_an_admin(self, company_id: int, user_id: int) -> bool:
+        query = company_members.select().where(company_members.c.company_id == company_id,
+                                               company_members.c.user_id == user_id)
+        member = await self.db.fetch_one(query)
+        return member.role == 'admin'
 
     async def check_access(self, company_pk: int, user_id: int) -> bool:
         """Check user access"""
@@ -54,7 +61,6 @@ class CompanyService:
         query = companies.insert().values(name=company.name, description=company.description, owner_id=user_id,
                                           time_created=datetime.utcnow(), time_updated=datetime.utcnow())
         created = await self.db.execute(query)
-        # here add user to Company Members as owner
         await self.db.execute(company_members.insert().values(user_id=user_id, company_id=created, role=u'owner'))
         return Company(id=created, name=company.name, description=company.description, owner_id=user_id,
                        time_created=datetime.utcnow(), time_updated=datetime.utcnow())
@@ -72,3 +78,26 @@ class CompanyService:
         """Delete company"""
         query = companies.delete().where(companies.c.id == pk)
         await self.db.execute(query)
+
+    # create an admin
+    async def admin_create(self, company_id: int, user_id: int) -> ResponseSuccess:
+        """Create an admin"""
+        query = company_members.update().where(company_members.c.company_id == company_id,
+                                               company_members.c.user_id == user_id).values(role='admin')
+        await self.db.execute(query)
+        return ResponseSuccess(detail="success")
+
+    # delete an admin
+    async def admin_remove(self, company_id: int, user_id: int) -> ResponseSuccess:
+        """Remove an admin"""
+        query = company_members.update().where(company_members.c.company_id == company_id,
+                                               company_members.c.user_id == user_id).values(role='general-user')
+        await self.db.execute(query)
+        return ResponseSuccess(detail="success")
+
+    # get all admins
+    async def get_admins_all(self, company_id: int) -> ListMember:
+        query = company_members.select().where(company_members.c.company_id == company_id,
+                                               company_members.c.role == 'admin')
+        admins = await self.db.fetch_all(query)
+        return ListMember(members=[Member(id=item.id, user_id=item.user_id, role=item.role) for item in admins])

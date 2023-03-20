@@ -18,7 +18,8 @@ depends_on = None
 
 TYPES = [
     ('general-user', 'General user'),
-    ('owner', 'Owner')
+    ('owner', 'Owner'),
+    ('admin', 'Admin')
 ]
 
 TYPES2 = [
