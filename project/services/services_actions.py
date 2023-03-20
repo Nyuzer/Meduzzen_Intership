@@ -15,7 +15,7 @@ class ActionsService:
     def __init__(self, database: Database):
         self.db = database
 
-    async def retrieve_userid(self, pk: int):
+    async def retrieve_userid(self, pk: int) -> int:
         query = actions.select().where(actions.c.id == pk)
         item = await self.db.fetch_one(query)
         return item.user_id
@@ -48,7 +48,7 @@ class ActionsService:
         item = await self.db.fetch_one(query)
         return item is not None
 
-    async def check_already_sent(self, company_id: int, user_id: int, type_r: str):
+    async def check_already_sent(self, company_id: int, user_id: int, type_r: str) -> bool:
         query = actions.select().where(actions.c.company_id == company_id, actions.c.user_id == user_id,
                                        actions.c.type_of_request == type_r)
         item = await self.db.fetch_one(query)
@@ -108,7 +108,7 @@ class ActionsService:
         await self.db.execute(query)
         return ResponseSuccess(detail='success')
 
-    async def owner_exclude_user(self, company_id: int, pk: int):
+    async def owner_exclude_user(self, company_id: int, pk: int) -> ResponseSuccess:
         query = company_members.delete().where(company_members.c.company_id == company_id,
                                                company_members.c.user_id == pk)
         await self.db.execute(query)
