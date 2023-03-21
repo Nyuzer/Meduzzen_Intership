@@ -77,3 +77,36 @@ class Action(Base):
 
 
 actions = Action.__table__
+
+
+class Quizz(Base):
+    __tablename__ = 'quizzes'
+
+    id = Column(Integer, primary_key=True, index=True, unique=True)
+    name = Column(String(50), nullable=False)
+    description = Column(String(150), nullable=False)
+    number_of_frequency = Column(Integer)
+    author_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'))
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+
+    question = relationship('Question', back_populates='quizz')
+
+
+quizzes = Quizz.__table__
+
+
+class Question(Base):
+    __tablename__ = 'questions'
+
+    id = Column(Integer, primary_key=True, index=True, unique=True)
+    question = Column(String, nullable=False)
+    answers = Column(String, nullable=False)
+    correct_answer = Column(String, nullable=False)
+    quizz_id = Column(Integer, ForeignKey('quizzes.id', ondelete='CASCADE'))
+
+    quizz = relationship('Quizz', back_populates='question')
+
+
+questions = Question.__table__

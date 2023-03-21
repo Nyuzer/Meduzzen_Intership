@@ -7,7 +7,7 @@ from alembic import context
 
 from project.db.db import SQLALCHEMY_DATABASE_URL
 
-from project.db.models import User, Base, Company, CompanyMembers, Action
+from project.db.models import User, Base, Company, CompanyMembers, Action, Quizz, Question
 
 import sqlalchemy_utils
 # this is the Alembic Config object, which provides
