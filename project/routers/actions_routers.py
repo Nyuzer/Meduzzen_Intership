@@ -111,7 +111,9 @@ async def owner_exclude_user(company_id: int, pk: int, db: Database = Depends(ge
     if not await actions.check_user_consists_company(company_id=company_id, user_id=pk):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Member not found')
     if await actions.check_owner(company_id=company_id, user_id=user.id):
-        return await actions.owner_exclude_user(company_id=company_id, pk=pk)
+        if pk != user.id:
+            return await actions.owner_exclude_user(company_id=company_id, pk=pk)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Owner cannot kick himself')
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="it's not your company")
 
 

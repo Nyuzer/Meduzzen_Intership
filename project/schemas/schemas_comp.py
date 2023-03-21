@@ -34,3 +34,5 @@ class CompanyUpdate(BaseModel):
 
 class ListCompany(BaseModel):
     companies: list[Company]
+
+

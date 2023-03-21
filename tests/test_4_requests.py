@@ -333,3 +333,45 @@ async def test_members_after_leave(ac: AsyncClient, users_tokens):
     response = await ac.get("/company/2/members", headers=headers)
     assert response.status_code == 200
     assert len(response.json().get('members')) == 2
+
+
+async def test_send_request_three_again_success(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        "company_id": 2,
+        "invite_message": "string"
+    }
+    response = await ac.post("/invite/send", json=payload, headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('detail') == "success"
+
+
+async def test_accept_request_three(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    response = await ac.get("/invite/company/8/accept", headers=headers)
+    assert response.status_code == 200
+
+
+async def test_send_request_four_again_success(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test4@test.com']}",
+    }
+    payload = {
+        "company_id": 2,
+        "invite_message": "string"
+    }
+    response = await ac.post("/invite/send", json=payload, headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('detail') == "success"
+
+
+async def test_accept_request_four(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test2@test.com']}",
+    }
+    response = await ac.get("/invite/company/9/accept", headers=headers)
+    assert response.status_code == 200
