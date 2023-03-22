@@ -26,7 +26,7 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
 
 # 010101user@example.com
 # Miniasas01234
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjAxMDEwMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzk0Mzk3NzkuMzE2MTUyOH0.D0q_t0t88kuZuv0CnA783Sk3kF4_CXafUhWstqS8msQ
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjAxMDEwMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzk0OTQ0MTUuMjYwMTMwNn0.OGuQORH7dc5qSAo-FROZ9OXC2-cpyRSkJNeIGAJhbPE
 
 # "id": 8,
 # "name": "Miniasas01234",

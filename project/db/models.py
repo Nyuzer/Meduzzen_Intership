@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy_utils.types.choice import ChoiceType
@@ -87,6 +87,7 @@ class Quizz(Base):
     description = Column(String(150), nullable=False)
     number_of_frequency = Column(Integer)
     author_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    updated_by = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
     company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'))
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
@@ -102,7 +103,7 @@ class Question(Base):
 
     id = Column(Integer, primary_key=True, index=True, unique=True)
     question = Column(String, nullable=False)
-    answers = Column(String, nullable=False)
+    answers = Column(ARRAY(String), nullable=False)
     correct_answer = Column(String, nullable=False)
     quizz_id = Column(Integer, ForeignKey('quizzes.id', ondelete='CASCADE'))
 

@@ -31,23 +31,10 @@ async def get_all_quizzes(company_id: int, db: Database = Depends(get_db),
     return await quizzes.get_quizzes(company_id=company_id)
 
 
-# Create quizz by owner or admin
-@router.post('/{company_id}/create', status_code=200, response_model=ResponseSuccess)
-async def create_quizz(company_id: int, quizz: CreateQuizz, db: Database = Depends(get_db),
-                       user: User = Depends(get_current_user)) -> ResponseSuccess:
-    companies = CompanyService(database=db)
-    if await companies.get_company(pk=company_id) is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
-    if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
-            await companies.check_access(company_pk=company_id, user_id=user.id):
-        quizzes = QuizzService(database=db)
-        return await quizzes.quizz_create(quizz=quizz, company_id=company_id, author_id=user.id)
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
-
-
-@router.put('/{company_id}/update/{quizz_id}', status_code=200, response_model=ResponseSuccess)
-async def update_quizz(company_id: int, quizz_id: int, quizz: UpdateQuizz, db: Database = Depends(get_db),
-                       user: User = Depends(get_current_user)) -> ResponseSuccess:
+# Get quizz by id
+@router.get('/{company_id}/quizz/{quizz_id}', status_code=200, response_model=Quizz)
+async def get_quizz_by_id(company_id: int, quizz_id: int, db: Database = Depends(get_db),
+                          user: User = Depends(get_current_user)) -> Quizz:
     companies = CompanyService(database=db)
     if await companies.get_company(pk=company_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
@@ -56,10 +43,46 @@ async def update_quizz(company_id: int, quizz_id: int, quizz: UpdateQuizz, db: D
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quizz does not exist')
     if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
             await companies.check_access(company_pk=company_id, user_id=user.id):
-        return await quizzes.quizz_update(quizz_id=quizz_id, quizz=quizz)
+        return await quizzes.quizz_get_by_id(quizz_id=quizz_id)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can read only owner or admin')
+
+
+# Create quizz by owner or admin
+@router.post('/{company_id}/create', status_code=200, response_model=ResponseSuccess)
+async def create_quizz(company_id: int, quizz: CreateQuizz, db: Database = Depends(get_db),
+                       user: User = Depends(get_current_user)) -> ResponseSuccess:
+    companies = CompanyService(database=db)
+    if await companies.get_company(pk=company_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
+    quizzes = QuizzService(database=db)
+    if await quizzes.check_exist_quizz_by_name(quizz_name=quizz.name):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz with this name already exist')
+    if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
+            await companies.check_access(company_pk=company_id, user_id=user.id):
+        return await quizzes.quizz_create(quizz=quizz, company_id=company_id, author_id=user.id)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
 
 
+# Update quizz by owner or admin
+@router.put('/{company_id}/update/{quizz_id}', status_code=200, response_model=ResponseSuccess)
+async def update_quizz(company_id: int, quizz_id: int, quizz: UpdateQuizz, db: Database = Depends(get_db),
+                       user: User = Depends(get_current_user)) -> ResponseSuccess:
+    companies = CompanyService(database=db)
+    if await companies.get_company(pk=company_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
+    quizzes = QuizzService(database=db)
+    if quizz.name is not None:
+        if await quizzes.check_exist_quizz_by_name(quizz_name=quizz.name):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz with this name already exist')
+    if not await quizzes.check_exist_quizz(quizz_id=quizz_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quizz does not exist')
+    if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
+            await companies.check_access(company_pk=company_id, user_id=user.id):
+        return await quizzes.quizz_update(quizz_id=quizz_id, quizz=quizz, updated_by=user.id)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
+
+
+# Delete quizz by owner or admin
 @router.delete('/{company_id}/delete/{quizz_id}', status_code=200, response_model=ResponseSuccess)
 async def delete_quizz(company_id: int, quizz_id: int, db: Database = Depends(get_db),
                        user: User = Depends(get_current_user)) -> ResponseSuccess:
@@ -73,9 +96,3 @@ async def delete_quizz(company_id: int, quizz_id: int, db: Database = Depends(ge
             await companies.check_access(company_pk=company_id, user_id=user.id):
         return await quizzes.quizz_delete(quizz_id=quizz_id)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
-
-
-@router.get('/test/{company_id}', status_code=200, response_model=ListQuizz)
-async def get_all_quizzes(company_id: int, db: Database = Depends(get_db)) -> ListQuizz:
-    quizzes = QuizzService(database=db)
-    return await quizzes.get_quizzes(company_id=company_id)
