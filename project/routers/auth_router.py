@@ -26,7 +26,7 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
 
 # 010101user@example.com
 # Miniasas01234
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjAxMDEwMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2NzkzNDkwODUuMDAyOTE5N30.yBvblwojE3W1Eycrev2YIH_ZnBe5qtBJ0iDbA2fecyo
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjAxMDEwMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzk0Mzk3NzkuMzE2MTUyOH0.D0q_t0t88kuZuv0CnA783Sk3kF4_CXafUhWstqS8msQ
 
 # "id": 8,
 # "name": "Miniasas01234",
@@ -39,3 +39,44 @@ async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> T
     if await user_service.user_authentication(user=user):
         return create_access_token(user.email)
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
+
+
+"""
+{
+  "name": "string",
+  "description": "string",
+  "number_of_frequency": 0,
+  "questions": [
+    {
+      "question": "2+2=?",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct_answer": "4"
+    },
+    {
+      "question": "2+2=?",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct_answer": "4"
+    },
+    {
+      "question": "2+2=?",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct_answer": "4"
+    }
+  ]
+}
+"""

@@ -1,9 +1,10 @@
 from databases import Database
-from project.db.models import quizzes, questions
+from project.db.models import quizzes, questions, Question, Quizz
+from sqlalchemy import select
 
 from datetime import datetime
 
-from project.schemas.schemas_quizzes import Quizz, Question, ListQuizz, CreateQuizz, UpdateQuizz
+from project.schemas.schemas_quizzes import Quizz as QuizzSchema, Question as QuestionSchema, ListQuizz, CreateQuizz, UpdateQuizz
 from project.schemas.schemas_actions import ResponseSuccess
 
 
@@ -19,19 +20,19 @@ class QuizzService:
     async def get_quizzes(self, company_id: int) -> ListQuizz:
         # join table что бы было две таблицы в селекте
         # query = quizz
-        query = quizzes.select().where(quizzes.c.company_id == company_id)
+        query = select(quizzes, questions).join(questions).where(quizzes.c.id == company_id)
         items = await self.db.execute(query)
         # что то похожее на это
-        return ListQuizz(result=[Quizz(id=quiz.quizzes.id, name=quiz.quizzes.name,
-                                       description=quiz.quizzes.description,
-                                       number_of_frequency=quiz.quizzes.number_of_frequency,
-                                       questions=[Question(id=item.questions.id, question=item.questions.question,
-                                                           answers=item.questions.answers.split('|'),
-                                                           correct_answer=item.questions.correct_answer)
-                                                  for item in items if quiz.quizzes.id == item.questions.quizz_id],
-                                       time_created=quiz.quizzes.time_created,
-                                       time_updated=quiz.quizzes.time_updated
-                                       ) for quiz in items])
+        return ListQuizz(result=[QuizzSchema(id=quiz.quizzes.id, name=quiz.quizzes.name,
+                                             description=quiz.quizzes.description,
+                                             number_of_frequency=quiz.quizzes.number_of_frequency,
+                                             questions=[QuestionSchema(id=item.questions.id,
+                                                                       question=item.questions.question,
+                                                                       answers=item.questions.answers.split('|'),
+                                                                       correct_answer=item.questions.correct_answer)
+                                                        for item in items if quiz.quizzes.id == item.questions.quizz_id]
+                                             , time_created=quiz.quizzes.time_created,
+                                             time_updated=quiz.quizzes.time_updated) for quiz in items])
 
     # how to decode 'a|b' -> string_from_db.split('|')
     async def quizz_create(self, quizz: CreateQuizz, company_id: int, author_id: int) -> ResponseSuccess:

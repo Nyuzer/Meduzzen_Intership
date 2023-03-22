@@ -73,3 +73,9 @@ async def delete_quizz(company_id: int, quizz_id: int, db: Database = Depends(ge
             await companies.check_access(company_pk=company_id, user_id=user.id):
         return await quizzes.quizz_delete(quizz_id=quizz_id)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
+
+
+@router.get('/test/{company_id}', status_code=200, response_model=ListQuizz)
+async def get_all_quizzes(company_id: int, db: Database = Depends(get_db)) -> ListQuizz:
+    quizzes = QuizzService(database=db)
+    return await quizzes.get_quizzes(company_id=company_id)
