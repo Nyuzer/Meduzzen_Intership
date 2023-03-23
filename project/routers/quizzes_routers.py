@@ -26,12 +26,12 @@ async def get_all_quizzes(company_id: int, db: Database = Depends(get_db),
     actions = ActionsService(database=db)
     if not await actions.check_user_consists_company(company_id=company_id, user_id=user.id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f'User with id {user.id} is not member of company')
+                            detail=f'User is not member of company')
     quizzes = QuizzService(database=db)
     return await quizzes.get_quizzes(company_id=company_id)
 
 
-# Get quizz by id
+# Get quizz by id by owner or admin
 @router.get('/{company_id}/quizz/{quizz_id}', status_code=200, response_model=Quizz)
 async def get_quizz_by_id(company_id: int, quizz_id: int, db: Database = Depends(get_db),
                           user: User = Depends(get_current_user)) -> Quizz:

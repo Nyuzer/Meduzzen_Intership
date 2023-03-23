@@ -16,23 +16,6 @@ async def auth_me(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-# 111111user@example.com
-# string012345
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjExMTExMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2NzkzMzY1ODEuNTE0NjkzfQ.e2d2tKRlE11PAPAvIZPUDJUmi0bEMM9sgSvslJMftvM
-
-# "id": 32,
-# "username": "strasaing",
-# "email": "111111user@example.com",
-
-# 010101user@example.com
-# Miniasas01234
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjAxMDEwMXVzZXJAZXhhbXBsZS5jb20iLCJleHBpcnkiOjE2Nzk0OTQ0MTUuMjYwMTMwNn0.OGuQORH7dc5qSAo-FROZ9OXC2-cpyRSkJNeIGAJhbPE
-
-# "id": 8,
-# "name": "Miniasas01234",
-# "description": "Abiaib",
-# "owner_id": 34,
-
 @router.post('/login', response_model=TokenResponse)
 async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> TokenResponse:
     user_service = UserService(database=db)
@@ -41,12 +24,18 @@ async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> T
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
 
 
+# user@gmail.com
+# String123123
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJAZ21haWwuY29tIiwiZXhwaXJ5IjoxNjc5NTc5MjI5LjQ1Njk5MTR9.JPNsFbXbOVxhjYDCAy3TE3zy2TqtXWb08hacQO0zGXo
+
+# company_id 1
+
 """
 {
   "name": "string",
   "description": "string",
   "number_of_frequency": 0,
-  "questions": [
+  "quiz_questions": [
     {
       "question": "2+2=?",
       "answers": [

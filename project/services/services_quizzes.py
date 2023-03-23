@@ -23,9 +23,6 @@ class QuizzService:
         return item is not None
 
     async def get_quizzes(self, company_id: int) -> ListQuizz:
-        # query = select(QuizResults).select_from(QuizResults.__table__.join(
-        #             subquery, QuizResults.id == subquery.c.max_id)
-        #         ).where(QuizResults.user_id == user.id)
         query = quizzes.select().where(quizzes.c.company_id == company_id)
         items = await self.db.fetch_all(query)
         return ListQuizz(quizzes=[Quizzes(id=item.id, name=item.name, description=item.description,
@@ -34,16 +31,16 @@ class QuizzService:
                                           time_updated=item.time_updated) for item in items])
 
     async def quizz_get_by_id(self, quizz_id: int) -> Quizz:
-        query = quizzes.select().where(quizzes.c.quizz_id == quizz_id)
+        query = quizzes.select().where(quizzes.c.id == quizz_id)
         quizz = await self.db.fetch_one(query)
         query = questions.select().where(questions.c.quizz_id == quizz_id)
         quests = await self.db.fetch_all(query)
         return Quizz(id=quizz.id, name=quizz.name, description=quizz.description,
-                     number_of_frequency=quizz.number_of_frequency, questions=[Question(id=item.id,
-                                                                                        question=item.question,
-                                                                                        answers=item.answers,
-                                                                                        correct_answer=item.correct_answer)
-                                                                               for item in quests],
+                     number_of_frequency=quizz.number_of_frequency, quiz_questions=[Question(id=item.id,
+                                                                                             question=item.question,
+                                                                                             answers=item.answers,
+                                                                                             correct_answer=item.correct_answer)
+                                                                                    for item in quests],
                      author_id=quizz.author_id, updated_by=quizz.updated_by, time_created=quizz.time_created,
                      time_updated=quizz.time_updated)
 
@@ -53,10 +50,12 @@ class QuizzService:
                                         updated_by=author_id, company_id=company_id, time_created=datetime.utcnow(),
                                         time_updated=datetime.utcnow())
         pk = await self.db.execute(query)
-        for item in quizz.questions:
-            query = questions.insert().values(question=item.question, answers=item.answers,
-                                              correct_answer=item.correct_answer, quizz_id=pk)
-            await self.db.execute(query)
+        result = []
+        for item in quizz.quiz_questions:
+            result.append({"question": item.question, "answers": item.answers,
+                           "correct_answer": item.correct_answer, "quizz_id": pk})
+        query = questions.insert().values(result)
+        await self.db.execute(query)
         return ResponseSuccess(detail='success')
 
     async def quizz_update(self, quizz_id: int, quizz: UpdateQuizz, updated_by: int) -> ResponseSuccess:
@@ -67,6 +66,8 @@ class QuizzService:
 
     async def quizz_delete(self, quizz_id: int) -> ResponseSuccess:
         query = quizzes.delete().where(quizzes.c.id == quizz_id)
+        await self.db.execute(query)
+        query = questions.delete().where(questions.c.quizz_id == quizz_id)
         await self.db.execute(query)
         return ResponseSuccess(detail='success')
 
