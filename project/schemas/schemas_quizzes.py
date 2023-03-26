@@ -92,3 +92,10 @@ class UpdateQuizz(BaseModel):
     def check_number_of_frequency(cls, v):
         if v <= 0:
             raise ValueError('Frequency must be a positive number')
+        return v
+
+
+class UpdateQuestion(BaseModel):
+    question: Optional[str]
+    answers: Optional[list[str]]
+    correct_answer: Optional[str]

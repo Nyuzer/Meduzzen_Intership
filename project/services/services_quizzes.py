@@ -1,10 +1,12 @@
 from databases import Database
 from project.db.models import quizzes, questions
-from sqlalchemy import select
+
+from fastapi import HTTPException, status
 
 from datetime import datetime
 
-from project.schemas.schemas_quizzes import ListQuizz, CreateQuizz, UpdateQuizz, Quizzes, Quizz, Question
+from project.schemas.schemas_quizzes import ListQuizz, CreateQuizz, UpdateQuizz, Quizzes, Quizz, Question,\
+    UpdateQuestion
 from project.schemas.schemas_actions import ResponseSuccess
 
 
@@ -12,8 +14,35 @@ class QuizzService:
     def __init__(self, database: Database):
         self.db = database
 
+    @staticmethod
+    def check_length_answers(answers: list) -> bool:
+        if len(answers) > 2:
+            return True
+        return False
+
+    @staticmethod
+    def check_correct_answer_in_answers(correct_answer: str, answers: list) -> bool:
+        if correct_answer in answers:
+            return True
+        return False
+
+    async def your_company_quizz(self, quizz_id: int, company_id: int) -> bool:
+        query = quizzes.select().where(quizzes.c.id == quizz_id)
+        quizz_company = await self.db.fetch_one(query)
+        return quizz_company.company_id == company_id
+
+    async def question_related_to_quizz(self, quizz_id: int, question_id: int) -> bool:
+        query = questions.select().where(questions.c.id == question_id)
+        question_quizz = await self.db.fetch_one(query)
+        return question_quizz.quizz_id == quizz_id
+
     async def check_exist_quizz(self, quizz_id: int) -> bool:
         query = quizzes.select().where(quizzes.c.id == quizz_id)
+        item = await self.db.fetch_one(query)
+        return item is not None
+
+    async def check_exists_question(self, question_id: int) -> bool:
+        query = questions.select().where(questions.c.id == question_id)
         item = await self.db.fetch_one(query)
         return item is not None
 
@@ -63,6 +92,57 @@ class QuizzService:
         query = quizzes.update().where(quizzes.c.id == quizz_id).values(**updated, updated_by=updated_by)
         await self.db.execute(query)
         return ResponseSuccess(detail='success')
+
+    @staticmethod
+    async def update_question(db: Database, values: dict, user_id: int, question_id: int,
+                              quizz_id: int) -> ResponseSuccess:
+        query = questions.update().where(questions.c.id == question_id).values(**values)
+        await db.execute(query)
+        query = quizzes.update().where(quizzes.c.id == quizz_id).values(updated_by=user_id)
+        await db.execute(query)
+        return ResponseSuccess(detail='success')
+
+    async def validate_question(self, database: Database, question: UpdateQuestion, question_id: int,
+                                user_id: int, quizz_id: int) -> ResponseSuccess:
+        values = {}
+        if question.question:
+            values['question'] = question.question
+        if question.answers:
+            if QuizzService.check_length_answers(answers=question.answers):
+                if question.correct_answer:
+                    result = QuizzService.check_correct_answer_in_answers(correct_answer=question.correct_answer,
+                                                                          answers=question.answers)
+                    if result:
+                        values['answers'] = question.answers
+                        values['correct_answer'] = question.correct_answer
+                    else:
+                        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                            detail='Correct answer should be in answers')
+                else:
+                    query = questions.select().where(questions.c.id == question_id)
+                    question_old = await self.db.fetch_one(query)
+                    result = QuizzService.check_correct_answer_in_answers(correct_answer=question_old.correct_answer,
+                                                                          answers=question.answers)
+                    if result:
+                        values['answers'] = question.answers
+                    else:
+                        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                            detail='Correct answer should be in answers')
+            else:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                    detail='Answers should be more than two')
+        elif question.correct_answer:
+            query = questions.select().where(questions.c.id == question_id)
+            question_old = await self.db.fetch_one(query)
+            result = QuizzService.check_correct_answer_in_answers(correct_answer=question.correct_answer,
+                                                                  answers=question_old.answers)
+            if result:
+                values['correct_answer'] = question.correct_answer
+            else:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                    detail='Correct answer should be in answers')
+        return await QuizzService.update_question(db=database, values=values, user_id=user_id, question_id=question_id,
+                                                  quizz_id=quizz_id)
 
     async def quizz_delete(self, quizz_id: int) -> ResponseSuccess:
         query = quizzes.delete().where(quizzes.c.id == quizz_id)

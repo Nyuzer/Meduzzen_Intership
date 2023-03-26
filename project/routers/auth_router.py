@@ -26,7 +26,7 @@ async def login_for_token(user: SigninUser, db: Database = Depends(get_db)) -> T
 
 # user@gmail.com
 # String123123
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJAZ21haWwuY29tIiwiZXhwaXJ5IjoxNjc5NTc5MjI5LjQ1Njk5MTR9.JPNsFbXbOVxhjYDCAy3TE3zy2TqtXWb08hacQO0zGXo
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InVzZXJAZ21haWwuY29tIiwiZXhwaXJ5IjoxNjc5ODQzMDAwLjkwODg0NDd9.vF8G9hECr48d89qdHBtlEgVSGJLPxRA-I2ubSgGmwus
 
 # company_id 1
 

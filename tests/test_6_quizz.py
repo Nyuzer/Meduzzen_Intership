@@ -620,6 +620,188 @@ async def test_update_quizz_success_two(ac: AsyncClient, users_tokens):
 
 # ------------------------------>
 
+# quizz = 2
+payload = {
+        "name": "String1234",
+        "description": "string description",
+        "number_of_frequency": 1,
+        "quiz_questions": [
+            {
+                "question": "2+2=?",
+                "answers": [
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                ],
+                "correct_answer": "4"
+            },
+            {
+                "question": "2+2=?",
+                "answers": [
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                ],
+                "correct_answer": "4"
+            },
+            {
+                "question": "2+2=?",
+                "answers": [
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                ],
+                "correct_answer": "4"
+            }
+        ]
+    }
+
+
+async def test_update_question_not_auth(ac: AsyncClient):
+    response = await ac.put('/quizz/2/update/2/questions/4')
+    assert response.status_code == 403
+
+
+async def test_update_question_no_company(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'question': '2+4=?'
+    }
+    response = await ac.put('/quizz/100/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 404
+
+
+async def test_update_question_no_quizz(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'question': '2+4=?'
+    }
+    response = await ac.put('/quizz/2/update/100/questions/4', json=payload, headers=headers)
+    assert response.status_code == 404
+
+
+async def test_update_question_no_question(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'question': '2+4=?'
+    }
+    response = await ac.put('/quizz/2/update/2/questions/100', json=payload, headers=headers)
+    assert response.status_code == 404
+
+
+async def test_update_question_not_member_of_company(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test4@test.com']}",
+    }
+    payload = {
+        'question': '2+4=?'
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 400
+
+
+async def test_update_question_not_admin_or_owner(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test1@test.com']}",
+    }
+    payload = {
+        'question': '2+4=?'
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 400
+
+
+async def test_update_question_answers_bad_length(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'answers': [
+            "1",
+            "2"
+        ]
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 422
+    assert response.json().get('detail') == 'Answers should be more than two'
+
+
+async def test_update_question_correct_answer_not_answers(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'answers': [
+            "1",
+            "2",
+            "5"
+        ]
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 422
+    assert response.json().get('detail') == 'Correct answer should be in answers'
+
+
+async def test_update_question_correct_answer_not_answers_two(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'correct_answer': '102'
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 422
+    assert response.json().get('detail') == 'Correct answer should be in answers'
+
+
+async def test_update_question_success(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'question': '2+3=?'
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('detail') == 'success'
+
+
+async def test_update_question_success_answers_correct_answer(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    payload = {
+        'answers': [
+            '3',
+            '5',
+            '6'
+        ],
+        'correct_answer': '5'
+    }
+    response = await ac.put('/quizz/2/update/2/questions/4', json=payload, headers=headers)
+    assert response.status_code == 200
+    assert response.json().get('detail') == 'success'
+
+
+async def test_get_updated_quizz_with_questions(ac: AsyncClient, users_tokens):
+    headers = {
+        "Authorization": f"Bearer {users_tokens['test3@test.com']}",
+    }
+    response = await ac.get('/quizz/2/quizz/2', headers=headers)
+    assert response.status_code == 200
+
+
+# ------------------------------>
+
 
 async def test_delete_quizz_no_company(ac: AsyncClient, users_tokens):
     headers = {
