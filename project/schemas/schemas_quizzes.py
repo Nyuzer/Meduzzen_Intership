@@ -99,3 +99,42 @@ class UpdateQuestion(BaseModel):
     question: Optional[str]
     answers: Optional[list[str]]
     correct_answer: Optional[str]
+
+
+class QuestionComplete(BaseModel):
+    id: int
+    answer: str
+
+
+class QuizzComplete(BaseModel):
+    results: list[QuestionComplete]
+
+    @root_validator
+    def check_no_repeats(cls, values):
+        results = values.get('results')
+        res = []
+        for item in results:
+            res.append(item.id)
+        if len(res) != len(set(res)):
+            raise ValueError("Here must not be any repeatable question id's")
+        return values
+
+
+class QuizzResultComplete(BaseModel):
+    id: int
+    date_of_passage: datetime
+    user_id: int
+    company_id: int
+    quizz_id: int
+    general_result: float
+    amount_of_questions: int
+    amount_of_correct_answers: int
+    avg: float
+    amount_of_questions_quizz: int
+    amount_of_correct_answers_quizz: int
+
+
+class ShowRatingCompany(BaseModel):
+    questions: int
+    answers: int
+    rating: float

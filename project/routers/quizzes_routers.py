@@ -5,7 +5,8 @@ from project.services.services import get_current_user
 
 from project.db.connections import get_db
 
-from project.schemas.schemas_quizzes import ListQuizz, Quizz, CreateQuizz, UpdateQuizz, UpdateQuestion
+from project.schemas.schemas_quizzes import ListQuizz, Quizz, CreateQuizz, UpdateQuizz, UpdateQuestion, QuizzComplete,\
+    QuizzResultComplete
 from project.schemas.schemas import User
 from project.schemas.schemas_actions import ResponseSuccess
 
@@ -41,6 +42,8 @@ async def get_quizz_by_id(company_id: int, quizz_id: int, db: Database = Depends
     quizzes = QuizzService(database=db)
     if not await quizzes.check_exist_quizz(quizz_id=quizz_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quizz does not exist')
+    if not await quizzes.your_company_quizz(quizz_id=quizz_id, company_id=company_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not your company quizz')
     if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
             await companies.check_access(company_pk=company_id, user_id=user.id):
         return await quizzes.quizz_get_by_id(quizz_id=quizz_id)
@@ -122,7 +125,37 @@ async def delete_quizz(company_id: int, quizz_id: int, db: Database = Depends(ge
     quizzes = QuizzService(database=db)
     if not await quizzes.check_exist_quizz(quizz_id=quizz_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quizz does not exist')
+    if not await quizzes.your_company_quizz(quizz_id=quizz_id, company_id=company_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not your company quizz')
     if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
             await companies.check_access(company_pk=company_id, user_id=user.id):
         return await quizzes.quizz_delete(quizz_id=quizz_id)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
+
+
+# Quizz completion
+# только один эндпоинт прохождения
+# функционал что оно считает рейтинг и средний балл
+@router.post('/{company_id}/completion/{quizz_id}', status_code=200, response_model=QuizzResultComplete)
+async def complete_quizz(company_id: int, quizz_id: int, res: QuizzComplete, db: Database = Depends(get_db),
+                         user: User = Depends(get_current_user)) -> QuizzResultComplete:
+    companies = CompanyService(database=db)
+    if await companies.get_company(pk=company_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
+    quizzes = QuizzService(database=db)
+    if not await quizzes.check_exist_quizz(quizz_id=quizz_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quizz does not exist')
+    actions = ActionsService(database=db)
+    if not await actions.check_user_consists_company(company_id=company_id, user_id=user.id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f'User is not member of company')
+    if not await quizzes.your_company_quizz(quizz_id=quizz_id, company_id=company_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not your company quizz')
+    return await quizzes.quizz_complete(quizz_id=quizz_id, company_id=company_id, user_id=user.id, results=res)
+
+
+@router.get('/aba/my', status_code=200)
+async def example_1(db: Database = Depends(get_db),
+                    user: User = Depends(get_current_user)):
+    quizzes = QuizzService(database=db)
+    return await quizzes.get_user_general_rating(user_id=user.id)

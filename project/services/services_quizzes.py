@@ -1,13 +1,15 @@
 from databases import Database
-from project.db.models import quizzes, questions
+from project.db.models import quizzes, questions, quizz_results
 
 from fastapi import HTTPException, status
 
 from datetime import datetime
 
 from project.schemas.schemas_quizzes import ListQuizz, CreateQuizz, UpdateQuizz, Quizzes, Quizz, Question,\
-    UpdateQuestion
+    UpdateQuestion, QuizzComplete, QuizzResultComplete, ShowRatingCompany
 from project.schemas.schemas_actions import ResponseSuccess
+
+from sqlalchemy import func, select
 
 
 class QuizzService:
@@ -25,6 +27,36 @@ class QuizzService:
         if correct_answer in answers:
             return True
         return False
+
+    # rating in company
+    async def get_user_general_rating_in_company(self, user_id: int, company_id: int) -> ShowRatingCompany:
+        query = select(quizz_results.c.quizz_id,
+                       func.max(quizz_results.c.amount_of_questions).label('amount_of_questions'),
+                       func.max(quizz_results.c.amount_of_correct_answers).label('amount_of_correct_answers'))\
+            .where(quizz_results.c.user_id == user_id, quizz_results.c.company_id == company_id).select_from(quizz_results).group_by(quizz_results.c.quizz_id)
+        result = await self.db.fetch_all(query)
+        amount_questions = 0
+        amount_answers = 0
+        for res in result:
+            amount_questions += res.amount_of_questions
+            amount_answers += res.amount_of_correct_answers
+        return ShowRatingCompany(questions=amount_questions, answers=amount_answers,
+                                 rating=amount_answers/amount_questions)
+
+    # rating in system
+    async def get_user_general_rating(self, user_id: int) -> ShowRatingCompany:
+        query = select(quizz_results.c.quizz_id,
+                       func.max(quizz_results.c.amount_of_questions).label('amount_of_questions'),
+                       func.max(quizz_results.c.amount_of_correct_answers).label('amount_of_correct_answers')) \
+            .where(quizz_results.c.user_id == user_id).select_from(quizz_results).group_by(quizz_results.c.quizz_id)
+        result = await self.db.fetch_all(query)
+        amount_questions = 0
+        amount_answers = 0
+        for res in result:
+            amount_questions += res.amount_of_questions
+            amount_answers += res.amount_of_correct_answers
+        return ShowRatingCompany(questions=amount_questions, answers=amount_answers,
+                                 rating=amount_answers / amount_questions)
 
     async def your_company_quizz(self, quizz_id: int, company_id: int) -> bool:
         query = quizzes.select().where(quizzes.c.id == quizz_id)
@@ -151,14 +183,70 @@ class QuizzService:
         await self.db.execute(query)
         return ResponseSuccess(detail='success')
 
+    async def quizz_complete(self, quizz_id: int, company_id: int, user_id: int,
+                             results: QuizzComplete) -> QuizzResultComplete:
+        query = questions.select().where(questions.c.quizz_id == quizz_id)
+        all_questions = await self.db.fetch_all(query)
+        all_questions = {item.id: item.correct_answer for item in all_questions}
+        result = {
+            'amount_of_questions_quizz': len(all_questions),
+            'amount_of_correct_answers_quizz': 0
+        }
+        for ques in results.results:
+            if all_questions.get(ques.id) == ques.answer:
+                result['amount_of_correct_answers_quizz'] += 1
+        result['avg'] = result['amount_of_correct_answers_quizz'] / result['amount_of_questions_quizz']
+        query = quizz_results.select().where(quizz_results.c.user_id == user_id, quizz_results.c.quizz_id == quizz_id)\
+            .order_by(quizz_results.c.date_of_passage.desc())
+        last_record = await self.db.fetch_one(query)
+        if last_record is not None:
+            result['amount_of_questions'] = last_record.amount_of_questions + result['amount_of_questions_quizz']
+            result['amount_of_correct_answers'] =\
+                last_record.amount_of_correct_answers + result['amount_of_correct_answers_quizz']
+        else:
+            result['amount_of_questions'] = result['amount_of_questions_quizz']
+            result['amount_of_correct_answers'] = result['amount_of_correct_answers_quizz']
+        result['general_result'] = result['amount_of_correct_answers'] / result['amount_of_questions']
+        query = quizz_results.insert().values(date_of_passage=datetime.utcnow(), user_id=user_id, company_id=company_id,
+                                              quizz_id=quizz_id, general_result=result['general_result'],
+                                              amount_of_questions=result['amount_of_questions'],
+                                              amount_of_correct_answers=result['amount_of_correct_answers'],
+                                              avg=result['avg'],
+                                              amount_of_questions_quizz=result['amount_of_questions_quizz'],
+                                              amount_of_correct_answers_quizz=result['amount_of_correct_answers_quizz'])
+        pk = await self.db.execute(query)
+        return QuizzResultComplete(id=pk, date_of_passage=datetime.utcnow(), user_id=user_id, company_id=company_id,
+                                   quizz_id=quizz_id, general_result=result['general_result'],
+                                   amount_of_questions=result['amount_of_questions'],
+                                   amount_of_correct_answers=result['amount_of_correct_answers'],
+                                   avg=result['avg'],
+                                   amount_of_questions_quizz=result['amount_of_questions_quizz'],
+                                   amount_of_correct_answers_quizz=result['amount_of_correct_answers_quizz'])
 
-# for future ->
-"""return ListQuizz(result=[QuizzSchema(id=quiz.quizzes.id, name=quiz.quizzes.name,
-                                             description=quiz.quizzes.description,
-                                             number_of_frequency=quiz.quizzes.number_of_frequency,
-                                             questions=[QuestionGet(id=item.questions.id,
-                                                                    question=item.questions.question,
-                                                                    answers=item.questions.answers)
-                                                        for item in items if quiz.quizzes.id == item.questions.quizz_id]
-                                             , time_created=quiz.quizzes.time_created,
-                                             time_updated=quiz.quizzes.time_updated) for quiz in items])"""
+
+"""
+{
+  "results": [
+    {
+      "id": 13,
+      "answer": "4"
+    },
+    {
+      "id": 15,
+      "answer": "5"
+    },
+    {
+      "id": 102,
+      "answer": "9"
+    },
+    {
+      "id": 12,
+      "answer": "5"
+    },
+    {
+      "id": 11,
+      "answer": "1"
+    }
+  ]
+}
+"""
