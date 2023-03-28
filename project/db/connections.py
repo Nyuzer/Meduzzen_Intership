@@ -23,4 +23,4 @@ def get_db():
 
 
 async def get_redis():
-    return aioredis.from_url(os.getenv("REDIS_URL"))
+    return aioredis.from_url(os.getenv("REDIS_URL"), decode_responses=True)

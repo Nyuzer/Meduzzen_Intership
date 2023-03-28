@@ -25,8 +25,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    redis = await get_redis()
-
+    # redis = await get_redis()
     database = get_db()
     await database.connect()
 
@@ -37,6 +36,7 @@ async def shutdown():
     await database.disconnect()
 
 app.include_router(routes)
+
 
 @app.get('/')
 def health_check():
