@@ -10,6 +10,7 @@ services:
     env_file:
       - .env
     environment:
+      - REDIS_HOST=redis
       - POSTGRES_HOST=db
     ports:
       - ${PORT}:${PORT}
@@ -20,10 +21,25 @@ services:
 
   redis:
     image: redis:alpine3.17
-    env_file:
-      - .env
+    container_name: redis_db
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+     - redis-data:/data
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      - REDIS_HOSTS=${REDIS_HOST}:${REDIS_HOST}:${REDIS_PORT}
+      - HTTP_USER=${HTTP_USER}
+      - HTTP_PASSWORD=${HTTP_PASSWORD}
+      - COMMANDER_PORT=${REDIS_PORTS}
+    ports:
+      - ${REDIS_PORTS}:${REDIS_PORTS}
+    depends_on:
+      - redis
 
   db:
     image: postgres:alpine3.17
@@ -52,3 +68,4 @@ services:
       - ${TEST_POSTGRES_PORT}:${POSTGRES_PORT}
 volumes:
   postgres_data:
+  redis-data:

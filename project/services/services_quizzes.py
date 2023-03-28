@@ -11,6 +11,11 @@ from project.schemas.schemas_actions import ResponseSuccess
 
 from sqlalchemy import func, select
 
+from project.db.connections import get_redis
+from project.schemas.schemas_redis_save import RedisResultSave
+
+import json
+
 
 class QuizzService:
     def __init__(self, database: Database):
@@ -192,9 +197,21 @@ class QuizzService:
             'amount_of_questions_quizz': len(all_questions),
             'amount_of_correct_answers_quizz': 0
         }
+        redis = await get_redis()
         for ques in results.results:
+            if all_questions.get(ques.id) is None:
+                continue
             if all_questions.get(ques.id) == ques.answer:
                 result['amount_of_correct_answers_quizz'] += 1
+                correct = True
+            else:
+                correct = False
+            value_in_redis = RedisResultSave(
+                user_id=user_id, company_id=company_id, quizz_id=quizz_id, question_id=ques.id, answer=ques.answer,
+                correct=correct
+            )
+            await redis.set(f's-{company_id}-{user_id}-{quizz_id}-{ques.id}',
+                            json.dumps(dict(value_in_redis)), ex=172800)
         result['avg'] = result['amount_of_correct_answers_quizz'] / result['amount_of_questions_quizz']
         query = quizz_results.select().where(quizz_results.c.user_id == user_id, quizz_results.c.quizz_id == quizz_id)\
             .order_by(quizz_results.c.date_of_passage.desc())

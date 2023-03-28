@@ -134,8 +134,6 @@ async def delete_quizz(company_id: int, quizz_id: int, db: Database = Depends(ge
 
 
 # Quizz completion
-# только один эндпоинт прохождения
-# функционал что оно считает рейтинг и средний балл
 @router.post('/{company_id}/completion/{quizz_id}', status_code=200, response_model=QuizzResultComplete)
 async def complete_quizz(company_id: int, quizz_id: int, res: QuizzComplete, db: Database = Depends(get_db),
                          user: User = Depends(get_current_user)) -> QuizzResultComplete:
@@ -152,10 +150,3 @@ async def complete_quizz(company_id: int, quizz_id: int, res: QuizzComplete, db:
     if not await quizzes.your_company_quizz(quizz_id=quizz_id, company_id=company_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not your company quizz')
     return await quizzes.quizz_complete(quizz_id=quizz_id, company_id=company_id, user_id=user.id, results=res)
-
-
-@router.get('/aba/my', status_code=200)
-async def example_1(db: Database = Depends(get_db),
-                    user: User = Depends(get_current_user)):
-    quizzes = QuizzService(database=db)
-    return await quizzes.get_user_general_rating(user_id=user.id)
