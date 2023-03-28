@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, ARRAY
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, ARRAY, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy_utils.types.choice import ChoiceType
@@ -111,3 +111,24 @@ class Question(Base):
 
 
 questions = Question.__table__
+
+
+class QuizzResults(Base):
+    __tablename__ = 'quizz_results'
+
+    id = Column(Integer, primary_key=True, index=True, unique=True)
+    date_of_passage = Column(DateTime(timezone=True), server_default=func.now())
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'))
+    quizz_id = Column(Integer, ForeignKey('quizzes.id', ondelete='CASCADE'))
+    general_result = Column(Float(precision=2))
+    amount_of_questions = Column(Integer)
+    amount_of_correct_answers = Column(Integer)
+    # процентное соотношение за квиз - 15 вопросов - 8 правильных ответов -> 8 / 15 = 0.53
+    # накапливаются данные по пользователю
+    avg = Column(Float(precision=2))
+    amount_of_questions_quizz = Column(Integer)
+    amount_of_correct_answers_quizz = Column(Integer)
+
+
+quizz_results = QuizzResults.__table__
