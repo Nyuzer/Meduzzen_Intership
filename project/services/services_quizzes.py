@@ -2,6 +2,7 @@ from databases import Database
 from project.db.models import quizzes, questions, quizz_results
 
 from fastapi import HTTPException, status
+from fastapi.responses import FileResponse
 
 from datetime import datetime
 
@@ -12,9 +13,12 @@ from project.schemas.schemas_actions import ResponseSuccess
 from sqlalchemy import func, select
 
 from project.db.connections import get_redis
-from project.schemas.schemas_redis_save import RedisResultSave
+from project.schemas.schemas_redis_save import RedisResultSave, RedisUserGet, ListRedisUserGet, \
+    ListRedisUsersResultsGet, RedisUsersResultsGet, RedisUsersResultsByQuizzGet, ListRedisUsersResultsByQuizzGet
 
 import json
+
+import csv
 
 
 class QuizzService:
@@ -109,6 +113,86 @@ class QuizzService:
                                                                                     for item in quests],
                      author_id=quizz.author_id, updated_by=quizz.updated_by, time_created=quizz.time_created,
                      time_updated=quizz.time_updated)
+
+    @staticmethod
+    async def get_answers_user(user_id) -> ListRedisUserGet:
+        result = []
+        redis = await get_redis()
+        all_keys = await redis.keys(f's-*-{user_id}-*-*')
+        for key in all_keys:
+            value = await redis.get(key)
+            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            company_id = data.get('company_id')
+            quizz_id = data.get('quizz_id')
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            correct = data.get('correct')
+            result.append(RedisUserGet(company_id=company_id, quizz_id=quizz_id, question_id=question_id,
+                                       answer=answer, correct=correct))
+        return ListRedisUserGet(result=result)
+
+    @staticmethod
+    async def get_answers_user_csv(user_id) -> FileResponse:
+        result = []
+        redis = await get_redis()
+        all_keys = await redis.keys(f's-*-{user_id}-*-*')
+        for key in all_keys:
+            value = await redis.get(key)
+            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            company_id = data.get('company_id')
+            quizz_id = data.get('quizz_id')
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            correct = data.get('correct')
+            result.append({company_id: company_id, quizz_id: quizz_id, question_id: question_id,
+                           answer: answer, correct: correct})
+        data_file = open(f'project/data/s-*-{user_id}-*-*.csv', 'w')
+        csv_writer = csv.writer(data_file)
+        count = 0
+        for line in result:
+            if count == 0:
+                header = line.keys()
+                csv_writer.writerow(header)
+                count += 1
+            csv_writer.writerow(line.values())
+        data_file.close()
+        return FileResponse(f'project/data/s-*-{user_id}-*-*.csv')
+
+    @staticmethod
+    async def get_results_quizzes_user(company_id: int, user_id: int = 0) -> ListRedisUsersResultsGet:
+        result = []
+        redis = await get_redis()
+        if user_id:
+            all_keys = await redis.keys(f's-{company_id}-{user_id}-*-*')
+        else:
+            all_keys = await redis.keys(f's-{company_id}-*-*-*')
+        for key in all_keys:
+            value = await redis.get(key)
+            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            quizz_id = data.get('quizz_id')
+            user_id = data.get('user_id')
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            correct = data.get('correct')
+            result.append(RedisUsersResultsGet(quizz_id=quizz_id, user_id=user_id, question_id=question_id,
+                                               answer=answer, correct=correct))
+        return ListRedisUsersResultsGet(result=result)
+
+    @staticmethod
+    async def get_by_quizz_results(company_id: int, quizz_id: int) -> ListRedisUsersResultsByQuizzGet:
+        result = []
+        redis = await get_redis()
+        all_keys = await redis.keys(f's-{company_id}-*-{quizz_id}-*')
+        for key in all_keys:
+            value = await redis.get(key)
+            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            user_id = data.get('user_id')
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            correct = data.get('correct')
+            result.append(RedisUsersResultsByQuizzGet(user_id=user_id, question_id=question_id,
+                                                      answer=answer, correct=correct))
+        return ListRedisUsersResultsByQuizzGet(result=result)
 
     async def quizz_create(self, quizz: CreateQuizz, company_id: int, author_id: int) -> ResponseSuccess:
         query = quizzes.insert().values(name=quizz.name, description=quizz.description,
@@ -245,7 +329,7 @@ class QuizzService:
 {
   "results": [
     {
-      "id": 13,
+      "id": 1,
       "answer": "4"
     },
     {
@@ -257,12 +341,12 @@ class QuizzService:
       "answer": "9"
     },
     {
-      "id": 12,
+      "id": 2,
       "answer": "5"
     },
     {
-      "id": 11,
-      "answer": "1"
+      "id": 3,
+      "answer": "4"
     }
   ]
 }

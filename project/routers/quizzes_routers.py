@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import FileResponse
 from databases import Database
 
 from project.services.services import get_current_user
@@ -9,6 +10,8 @@ from project.schemas.schemas_quizzes import ListQuizz, Quizz, CreateQuizz, Updat
     QuizzResultComplete
 from project.schemas.schemas import User
 from project.schemas.schemas_actions import ResponseSuccess
+from project.schemas.schemas_redis_save import ListRedisUserGet, ListRedisUsersResultsGet,\
+    ListRedisUsersResultsByQuizzGet
 
 from project.services.services_company import CompanyService
 from project.services.services_actions import ActionsService
@@ -150,3 +153,61 @@ async def complete_quizz(company_id: int, quizz_id: int, res: QuizzComplete, db:
     if not await quizzes.your_company_quizz(quizz_id=quizz_id, company_id=company_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not your company quizz')
     return await quizzes.quizz_complete(quizz_id=quizz_id, company_id=company_id, user_id=user.id, results=res)
+
+
+# get all users answers on quizzes
+@router.get('/user/my', status_code=200, response_model=ListRedisUserGet)
+async def get_users_answers(db: Database = Depends(get_db), user: User = Depends(get_current_user)) -> ListRedisUserGet:
+    quizzes = QuizzService(database=db)
+    return await quizzes.get_answers_user(user_id=user.id)
+
+
+# get all users answers on quizzes -> Respose csv file
+@router.get('/user/my/csv', status_code=200)
+async def get_users_answers(db: Database = Depends(get_db), user: User = Depends(get_current_user)) -> FileResponse:
+    quizzes = QuizzService(database=db)
+    return await quizzes.get_answers_user_csv(user_id=user.id)
+
+
+# get all user or all users results
+@router.get('/{company_id}/results/{user_id}', status_code=200, response_model=ListRedisUsersResultsGet)
+async def get_user_quizzes_results(company_id: int, user_id: int, db: Database = Depends(get_db),
+                                   user: User = Depends(get_current_user)) -> ListRedisUsersResultsGet:
+    companies = CompanyService(database=db)
+    if await companies.get_company(pk=company_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
+    actions = ActionsService(database=db)
+    if not await actions.check_user_consists_company(company_id=company_id, user_id=user.id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f'User is not member of company')
+    quizzes = QuizzService(database=db)
+    if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
+            await companies.check_access(company_pk=company_id, user_id=user.id):
+        if user_id == 0:
+            return await quizzes.get_results_quizzes_user(company_id=company_id)
+        elif user_id < 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User id cannot be less than 0')
+        return await quizzes.get_results_quizzes_user(company_id=company_id, user_id=user_id)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
+
+
+# get results by quizz
+@router.get('/{company_id}/results/{quizz_id}', status_code=200, response_model=ListRedisUsersResultsByQuizzGet)
+async def get_results_by_quizz(company_id: int, quizz_id: int, db: Database = Depends(get_db),
+                               user: User = Depends(get_current_user)) -> ListRedisUsersResultsByQuizzGet:
+    companies = CompanyService(database=db)
+    if await companies.get_company(pk=company_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The company does not exist')
+    actions = ActionsService(database=db)
+    if not await actions.check_user_consists_company(company_id=company_id, user_id=user.id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f'User is not member of company')
+    quizzes = QuizzService(database=db)
+    if not await quizzes.check_exist_quizz(quizz_id=quizz_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Quizz does not exist')
+    if not await quizzes.your_company_quizz(quizz_id=quizz_id, company_id=company_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Not your company quizz')
+    if await companies.is_an_admin(company_id=company_id, user_id=user.id) or \
+            await companies.check_access(company_pk=company_id, user_id=user.id):
+        return await quizzes.get_by_quizz_results(company_id=company_id, quizz_id=quizz_id)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Quizz can create only owner or admin')
