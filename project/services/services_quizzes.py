@@ -10,8 +10,6 @@ from project.schemas.schemas_quizzes import ListQuizz, CreateQuizz, UpdateQuizz,
     UpdateQuestion, QuizzComplete, QuizzResultComplete, ShowRatingCompany
 from project.schemas.schemas_actions import ResponseSuccess
 
-from sqlalchemy import func, select
-
 from project.db.connections import get_redis
 from project.schemas.schemas_redis_save import RedisResultSave, RedisUserGet, ListRedisUserGet, \
     ListRedisUsersResultsGet, RedisUsersResultsGet, RedisUsersResultsByQuizzGet, ListRedisUsersResultsByQuizzGet
@@ -19,6 +17,9 @@ from project.schemas.schemas_redis_save import RedisResultSave, RedisUserGet, Li
 import json
 
 import csv
+
+from project.services.services_actions import ActionsService
+from project.services.services_notification import NotificationService
 
 
 class QuizzService:
@@ -222,6 +223,11 @@ class QuizzService:
                            "correct_answer": item.correct_answer, "quizz_id": pk})
         query = questions.insert().values(result)
         await self.db.execute(query)
+        # logic of creation notification
+        actions = ActionsService(database=self.db)
+        result = await actions.get_company_members(pk=company_id)
+        notifications = NotificationService(database=self.db)
+        await notifications.create_notification(company_id=company_id, quizz_id=pk, users_id=result)
         return ResponseSuccess(detail='success')
 
     async def quizz_update(self, quizz_id: int, quizz: UpdateQuizz, updated_by: int) -> ResponseSuccess:

@@ -1,5 +1,5 @@
 from databases import Database
-from project.db.models import quizzes, questions, quizz_results
+from project.db.models import quizz_results
 
 from datetime import datetime
 

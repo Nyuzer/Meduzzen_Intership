@@ -132,3 +132,21 @@ class QuizzResults(Base):
 
 
 quizz_results = QuizzResults.__table__
+
+
+class Notifications(Base):
+    TYPES = [
+        ('sent', 'Notification sent'),
+        ('read', 'Notification read')
+    ]
+
+    __tablename__ = 'notifications'
+
+    id = Column(Integer, primary_key=True, index=True, unique=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    status = Column(ChoiceType(TYPES))
+    message = Column(String)
+
+
+notifications = Notifications.__table__
