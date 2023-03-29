@@ -26,6 +26,22 @@ class QuizzService:
         self.db = database
 
     @staticmethod
+    def make_csv_file(result: list, pattern_name: str) -> str:
+        name_file = f'project/data/{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} {pattern_name}'
+        data_file = open(name_file, 'w')
+        csv_writer = csv.writer(data_file)
+        count = 0
+        for line in result:
+            if count == 0:
+                header = line.keys()
+                csv_writer.writerow(header)
+                count += 1
+            values = line.values()
+            csv_writer.writerow(values)
+        data_file.close()
+        return name_file
+
+    @staticmethod
     def check_length_answers(answers: list) -> bool:
         if len(answers) > 2:
             return True
@@ -115,7 +131,7 @@ class QuizzService:
                      time_updated=quizz.time_updated)
 
     @staticmethod
-    async def get_answers_user(user_id) -> ListRedisUserGet:
+    async def get_answers_user(user_id: int) -> ListRedisUserGet:
         result = []
         redis = await get_redis()
         all_keys = await redis.keys(f's-*-{user_id}-*-*')
@@ -132,7 +148,7 @@ class QuizzService:
         return ListRedisUserGet(result=result)
 
     @staticmethod
-    async def get_answers_user_csv(user_id) -> FileResponse:
+    async def get_answers_user_csv(user_id: int) -> FileResponse:
         result = []
         redis = await get_redis()
         all_keys = await redis.keys(f's-*-{user_id}-*-*')
@@ -144,19 +160,10 @@ class QuizzService:
             question_id = data.get('question_id')
             answer = data.get('answer')
             correct = data.get('correct')
-            result.append({company_id: company_id, quizz_id: quizz_id, question_id: question_id,
-                           answer: answer, correct: correct})
-        data_file = open(f'project/data/s-*-{user_id}-*-*.csv', 'w')
-        csv_writer = csv.writer(data_file)
-        count = 0
-        for line in result:
-            if count == 0:
-                header = line.keys()
-                csv_writer.writerow(header)
-                count += 1
-            csv_writer.writerow(line.values())
-        data_file.close()
-        return FileResponse(f'project/data/s-*-{user_id}-*-*.csv')
+            result.append({'company_id': company_id, 'quizz_id': quizz_id, 'question_id': question_id,
+                           'answer': answer, 'correct': correct})
+        path_w_name_file = QuizzService.make_csv_file(result=result, pattern_name=f's-*-{user_id}-*-*')
+        return FileResponse(path=path_w_name_file, filename=path_w_name_file)
 
     @staticmethod
     async def get_results_quizzes_user(company_id: int, user_id: int = 0) -> ListRedisUsersResultsGet:
@@ -179,6 +186,29 @@ class QuizzService:
         return ListRedisUsersResultsGet(result=result)
 
     @staticmethod
+    async def get_results_quizzes_user_csv(company_id: int, user_id: int = 0) -> FileResponse:
+        result = []
+        redis = await get_redis()
+        if user_id:
+            pattern = f's-{company_id}-{user_id}-*-*'
+            all_keys = await redis.keys(pattern)
+        else:
+            pattern = f's-{company_id}-*-*-*'
+            all_keys = await redis.keys(pattern)
+        for key in all_keys:
+            value = await redis.get(key)
+            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            quizz_id = data.get('quizz_id')
+            user_id = data.get('user_id')
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            correct = data.get('correct')
+            result.append({'quizz_id': quizz_id, 'user_id': user_id, 'question_id': question_id, 'answer': answer,
+                           'correct': correct})
+        path_w_name_file = QuizzService.make_csv_file(result=result, pattern_name=pattern)
+        return FileResponse(path=path_w_name_file, filename=path_w_name_file)
+
+    @staticmethod
     async def get_by_quizz_results(company_id: int, quizz_id: int) -> ListRedisUsersResultsByQuizzGet:
         result = []
         redis = await get_redis()
@@ -193,6 +223,22 @@ class QuizzService:
             result.append(RedisUsersResultsByQuizzGet(user_id=user_id, question_id=question_id,
                                                       answer=answer, correct=correct))
         return ListRedisUsersResultsByQuizzGet(result=result)
+
+    @staticmethod
+    async def get_by_quizz_results_csv(company_id: int, quizz_id: int) -> FileResponse:
+        result = []
+        redis = await get_redis()
+        all_keys = await redis.keys(f's-{company_id}-*-{quizz_id}-*')
+        for key in all_keys:
+            value = await redis.get(key)
+            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            user_id = data.get('user_id')
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            correct = data.get('correct')
+            result.append({'user_id': user_id, 'question_id': question_id, 'answer': answer, 'correct': correct})
+        path_w_name_file = QuizzService.make_csv_file(result=result, pattern_name=f's-{company_id}-*-{quizz_id}-*')
+        return FileResponse(path=path_w_name_file, filename=path_w_name_file)
 
     async def quizz_create(self, quizz: CreateQuizz, company_id: int, author_id: int) -> ResponseSuccess:
         query = quizzes.insert().values(name=quizz.name, description=quizz.description,
