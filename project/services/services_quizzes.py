@@ -125,7 +125,7 @@ class QuizzService:
         all_keys = await redis.keys(f's-*-{user_id}-*-*')
         for key in all_keys:
             value = await redis.get(key)
-            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            data = json.loads(value)
             company_id = data.get('company_id')
             quizz_id = data.get('quizz_id')
             question_id = data.get('question_id')
@@ -146,7 +146,7 @@ class QuizzService:
             all_keys = await redis.keys(f's-{company_id}-*-*-*')
         for key in all_keys:
             value = await redis.get(key)
-            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            data = json.loads(value)
             quizz_id = data.get('quizz_id')
             user_id = data.get('user_id')
             question_id = data.get('question_id')
@@ -168,7 +168,7 @@ class QuizzService:
             all_keys = await redis.keys(pattern)
         for key in all_keys:
             value = await redis.get(key)
-            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            data = json.loads(value)
             quizz_id = data.get('quizz_id')
             user_id = data.get('user_id')
             question_id = data.get('question_id')
@@ -186,7 +186,7 @@ class QuizzService:
         all_keys = await redis.keys(f's-{company_id}-*-{quizz_id}-*')
         for key in all_keys:
             value = await redis.get(key)
-            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            data = json.loads(value)
             user_id = data.get('user_id')
             question_id = data.get('question_id')
             answer = data.get('answer')
@@ -202,7 +202,7 @@ class QuizzService:
         all_keys = await redis.keys(f's-{company_id}-*-{quizz_id}-*')
         for key in all_keys:
             value = await redis.get(key)
-            data = eval(value.replace('true', 'True').replace('false', 'False'))
+            data = json.loads(value)
             user_id = data.get('user_id')
             question_id = data.get('question_id')
             answer = data.get('answer')
