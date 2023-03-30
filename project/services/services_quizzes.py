@@ -53,36 +53,6 @@ class QuizzService:
             return True
         return False
 
-    # rating in company
-    async def get_user_general_rating_in_company(self, user_id: int, company_id: int) -> ShowRatingCompany:
-        query = select(quizz_results.c.quizz_id,
-                       func.max(quizz_results.c.amount_of_questions).label('amount_of_questions'),
-                       func.max(quizz_results.c.amount_of_correct_answers).label('amount_of_correct_answers'))\
-            .where(quizz_results.c.user_id == user_id, quizz_results.c.company_id == company_id).select_from(quizz_results).group_by(quizz_results.c.quizz_id)
-        result = await self.db.fetch_all(query)
-        amount_questions = 0
-        amount_answers = 0
-        for res in result:
-            amount_questions += res.amount_of_questions
-            amount_answers += res.amount_of_correct_answers
-        return ShowRatingCompany(questions=amount_questions, answers=amount_answers,
-                                 rating=amount_answers/amount_questions)
-
-    # rating in system
-    async def get_user_general_rating(self, user_id: int) -> ShowRatingCompany:
-        query = select(quizz_results.c.quizz_id,
-                       func.max(quizz_results.c.amount_of_questions).label('amount_of_questions'),
-                       func.max(quizz_results.c.amount_of_correct_answers).label('amount_of_correct_answers')) \
-            .where(quizz_results.c.user_id == user_id).select_from(quizz_results).group_by(quizz_results.c.quizz_id)
-        result = await self.db.fetch_all(query)
-        amount_questions = 0
-        amount_answers = 0
-        for res in result:
-            amount_questions += res.amount_of_questions
-            amount_answers += res.amount_of_correct_answers
-        return ShowRatingCompany(questions=amount_questions, answers=amount_answers,
-                                 rating=amount_answers / amount_questions)
-
     async def your_company_quizz(self, quizz_id: int, company_id: int) -> bool:
         query = quizzes.select().where(quizzes.c.id == quizz_id)
         quizz_company = await self.db.fetch_one(query)
