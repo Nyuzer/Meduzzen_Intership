@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from routers import users_routers, auth_router, companies_routers, actions_routers, quizzes_routers, analitics_routers
+from routers import users_routers, auth_router, companies_routers, actions_routers, quizzes_routers, analitics_routers,\
+    notification_routers
 
 
 routes = APIRouter()
@@ -10,3 +11,4 @@ routes.include_router(companies_routers.router, prefix='/company')
 routes.include_router(actions_routers.router, prefix='/invite')
 routes.include_router(quizzes_routers.router, prefix='/quizz')
 routes.include_router(analitics_routers.router, prefix='/analytic')
+routes.include_router(notification_routers.router, prefix='/notifications')
